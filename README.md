@@ -22,6 +22,18 @@ npm run build        # production build (dist/)
 npm run preview      # serve the production build
 ```
 
+## Deploy (Netlify)
+
+The repo ships a `netlify.toml`. On Netlify, "Add new site → Import from Git",
+pick this repo, and the settings are picked up automatically:
+
+- Build command: `npm run build`
+- Publish directory: `dist`
+
+No environment variables or backend are needed — the committed
+`public/dictionary.bin` is bundled at build time. Netlify serves the site over
+HTTPS, which enables the native share sheet and PWA install on mobile.
+
 ## How it works
 
 - `src/grid/` — seeded PRNG + authentic French Boggle dice → 4×4 board.

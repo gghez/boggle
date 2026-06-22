@@ -1,0 +1,24 @@
+# Netlify deployment config for the Boggle PWA (static site, no backend).
+# The dictionary asset (public/dictionary.bin) is committed, so the build does
+# not need to regenerate it — `vite build` copies public/ into dist/.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Long-cache the immutable, content-hashed build assets.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# The dictionary is gzip-compressed bytes decompressed in-app: serve as binary
+# and let the browser cache it (revalidated on change via the service worker).
+[[headers]]
+  for = "/dictionary.bin"
+  [headers.values]
+    Content-Type = "application/octet-stream"
+    Cache-Control = "public, max-age=86400"
