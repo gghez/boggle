@@ -263,6 +263,19 @@ body {
   overflow-y: auto;
 }
 
+/* In-game: let the found-words area absorb space so the grid drops to the
+   bottom of the screen, within thumb reach. */
+.words-wrap--grow {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: flex-start;
+}
+
+.screen--game {
+  justify-content: flex-start;
+}
+
 .words {
   list-style: none;
   margin: 0;

@@ -159,12 +159,13 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
   countdown.start();
 
   const header = el("div", { className: "game-header" }, [timerEl, scoreEl, beatEl]);
+  // Grid sits at the bottom (thumb reach); info fills the space above it.
   const screen = el("div", { className: "screen screen--game" }, [
     header,
     progressEl,
-    gridWrap,
+    el("div", { className: "words-wrap words-wrap--grow" }, [wordsEl]),
     currentEl,
-    el("div", { className: "words-wrap" }, [wordsEl]),
+    gridWrap,
   ]);
   root.append(screen);
 }
