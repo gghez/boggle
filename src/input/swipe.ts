@@ -23,6 +23,15 @@ export function extendPath(path: number[], cell: number): number[] {
   return [...path, cell];
 }
 
+/**
+ * Fraction of a cell's half-size used as the central "hot zone" radius during a
+ * drag. Only when the finger is within this radius of a cell's center does the
+ * cell register. This keeps the edges/corners inert, so dragging diagonally
+ * across the shared corner of four cells no longer snags the orthogonal
+ * neighbors in between.
+ */
+const HOT_ZONE_RATIO = 0.7;
+
 /** Binds pointer events on the grid element to build and submit a swipe path. */
 export class SwipeController {
   private path: number[] = [];
@@ -37,10 +46,22 @@ export class SwipeController {
     window.addEventListener("pointerup", this.up);
   }
 
-  private cellFromEvent(e: PointerEvent): number | null {
+  /**
+   * Cell index under the pointer. When `hotZone` is set, the pointer must be
+   * near the cell's center, not merely anywhere inside its box.
+   */
+  private cellFromEvent(e: PointerEvent, hotZone = false): number | null {
     const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
     const idx = el?.dataset.cell;
-    return idx == null ? null : Number(idx);
+    if (idx == null) return null;
+    if (hotZone) {
+      const r = el!.getBoundingClientRect();
+      const dx = e.clientX - (r.left + r.width / 2);
+      const dy = e.clientY - (r.top + r.height / 2);
+      const radius = (HOT_ZONE_RATIO * Math.min(r.width, r.height)) / 2;
+      if (dx * dx + dy * dy > radius * radius) return null;
+    }
+    return Number(idx);
   }
 
   private down = (e: PointerEvent) => {
@@ -53,7 +74,7 @@ export class SwipeController {
 
   private move = (e: PointerEvent) => {
     if (!this.dragging) return;
-    const c = this.cellFromEvent(e);
+    const c = this.cellFromEvent(e, true);
     if (c == null) return;
     const next = extendPath(this.path, c);
     if (next !== this.path) {
