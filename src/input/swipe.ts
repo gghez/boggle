@@ -4,18 +4,21 @@ import { areAdjacent } from "../game/rules";
  * Compute the next path given the cell currently under the finger:
  * - empty path → start at cell
  * - same cell → unchanged
- * - cell is the second-to-last → backtrack (pop last)
- * - cell already used, or not adjacent to last → unchanged
+ * - cell already in the path → backtrack: cancel every letter after it
+ *   (returning to letter N-1 from N drops N; also handles fast drags that
+ *   jump back several letters at once)
+ * - new cell not adjacent to the last → unchanged
  * - otherwise → append
  */
 export function extendPath(path: number[], cell: number): number[] {
   if (path.length === 0) return [cell];
   const last = path[path.length - 1];
   if (cell === last) return path;
-  if (path.length >= 2 && cell === path[path.length - 2]) {
-    return path.slice(0, -1);
+  const idx = path.indexOf(cell);
+  if (idx !== -1) {
+    // Finger went back onto an earlier letter: truncate to it.
+    return path.slice(0, idx + 1);
   }
-  if (path.includes(cell)) return path;
   if (!areAdjacent(last, cell)) return path;
   return [...path, cell];
 }
