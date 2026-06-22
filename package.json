@@ -12,6 +12,7 @@
     "build:dict": "tsx scripts/build-dictionary.ts"
   },
   "devDependencies": {
+    "@types/node": "^26.0.0",
     "@vitest/ui": "^2.1.8",
     "jsdom": "^25.0.1",
     "tsx": "^4.19.2",
