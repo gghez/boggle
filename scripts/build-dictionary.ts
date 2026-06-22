@@ -6,8 +6,11 @@
  *
  * The script downloads the list, normalizes each entry (accent-insensitive,
  * a-z only), filters to length >= 3, de-duplicates, sorts, and gzips the
- * newline-joined result into public/dictionary.txt.gz. Only this derived
- * asset is committed; the raw source list is not.
+ * newline-joined result into public/dictionary.bin. The `.bin` extension
+ * (not `.gz`) is deliberate: it stops static servers from applying a
+ * transport-level `Content-Encoding: gzip`, so the app decompresses the raw
+ * gzip bytes itself consistently across hosts. Only this derived asset is
+ * committed; the raw source list is not.
  */
 import { writeFileSync, mkdirSync } from "node:fs";
 import { gzipSync } from "node:zlib";
@@ -30,8 +33,8 @@ async function main() {
 
   const text = [...set].sort().join("\n");
   mkdirSync("public", { recursive: true });
-  writeFileSync("public/dictionary.txt.gz", gzipSync(text));
-  console.log(`Wrote ${set.size} words to public/dictionary.txt.gz`);
+  writeFileSync("public/dictionary.bin", gzipSync(text));
+  console.log(`Wrote ${set.size} words to public/dictionary.bin`);
 }
 
 main().catch((err) => {

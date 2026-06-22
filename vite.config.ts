@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["dictionary.txt.gz", "icon-192.png", "icon-512.png"],
+      includeAssets: ["dictionary.bin", "icon-192.png", "icon-512.png"],
       manifest: {
         name: "Boggle FR",
         short_name: "Boggle",
@@ -29,7 +29,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,gz,png,svg}"],
+        globPatterns: ["**/*.{js,css,html,bin,png,svg}"],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
       },
     }),

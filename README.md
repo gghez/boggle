@@ -42,4 +42,5 @@ Validation is accent-insensitive.
 
 Built at install time from
 [`an-array-of-french-words`](https://github.com/words/an-array-of-french-words)
-(MIT). Only the derived `public/dictionary.txt.gz` is committed.
+(MIT). Only the derived `public/dictionary.bin` (gzip-compressed, decompressed
+in-app) is committed.
