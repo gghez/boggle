@@ -9,7 +9,8 @@ export interface EndOptions {
   wordsToBeat: number | null;
   maxWords: number;
   maxScore: number;
-  onReplay: () => void;
+  onNewGrid: () => void;
+  onReplaySame: () => void;
 }
 
 /** A congratulation line scaled to the share of the grid's top score reached. */
@@ -26,7 +27,8 @@ function praiseFor(pct: number): { text: string; emoji: string } {
 
 /** Render the end-of-game summary with share + replay actions. */
 export function renderEnd(root: HTMLElement, opts: EndOptions): void {
-  const { engine, board, wordsToBeat, maxWords, maxScore, onReplay } = opts;
+  const { engine, board, wordsToBeat, maxWords, maxScore, onNewGrid, onReplaySame } =
+    opts;
   clear(root);
 
   const pct = maxScore > 0 ? Math.round((engine.score / maxScore) * 100) : 0;
@@ -73,10 +75,16 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
     },
   });
 
-  const replayBtn = el("button", {
+  const newGridBtn = el("button", {
     className: "btn",
-    textContent: "Rejouer",
-    onclick: onReplay,
+    textContent: "Nouvelle grille",
+    onclick: onNewGrid,
+  });
+
+  const replaySameBtn = el("button", {
+    className: "btn",
+    textContent: "Rejouer cette grille",
+    onclick: onReplaySame,
   });
 
   // Found words list.
@@ -86,7 +94,7 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
   }
 
   children.push(
-    el("div", { className: "actions" }, [shareBtn, replayBtn]),
+    el("div", { className: "actions" }, [shareBtn, newGridBtn, replaySameBtn]),
     el("div", { className: "words-wrap" }, [wordsEl]),
   );
 

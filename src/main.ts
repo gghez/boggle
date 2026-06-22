@@ -50,7 +50,8 @@ async function main() {
           wordsToBeat,
           maxWords: stats.maxWords,
           maxScore: stats.maxScore,
-          onReplay: () => startGame(generateBoard(randomSeed()), null),
+          onNewGrid: () => startGame(generateBoard(randomSeed()), null),
+          onReplaySame: () => startGame(board, wordsToBeat),
         }),
     });
   };
