@@ -44,9 +44,9 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
     onclick: async () => {
       try {
         const res = await shareChallenge({ board, wordsToBeat: engine.wordCount });
-        if (res === "copied") toast("Lien copié !");
+        if (res === "copied" || res === "manual") toast("Lien copié !");
       } catch {
-        toast("Partage annulé");
+        toast("Le partage a échoué");
       }
     },
   });

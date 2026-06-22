@@ -4,6 +4,7 @@ import { GameEngine, type SubmitResult } from "../game/engine";
 import { Countdown } from "../game/timer";
 import { SwipeController } from "../input/swipe";
 import { pathToWord } from "../game/rules";
+import { countWords } from "../game/solver";
 import { el, clear } from "./dom";
 
 export const TIMER_SECONDS = 180;
@@ -27,6 +28,9 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
   clear(root);
   const engine = new GameEngine(board, dict);
 
+  // Total number of words findable on this board (for the progress bar).
+  const maxWords = countWords(board, dict);
+
   const timerEl = el("div", { className: "timer", textContent: formatTime(TIMER_SECONDS) });
   const scoreEl = el("div", { className: "score", textContent: "0 pts" });
   const beatEl =
@@ -35,6 +39,37 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
       : el("div", { className: "beat" });
   const currentEl = el("div", { className: "current" });
   const wordsEl = el("ul", { className: "words" });
+
+  // Progress bar: found / max words, with the friend's score marked in challenge mode.
+  const progressFill = el("div", { className: "progress__fill" });
+  const progressMarker = el("div", { className: "progress__marker" });
+  if (wordsToBeat != null && maxWords > 0) {
+    const pct = Math.min(100, (wordsToBeat / maxWords) * 100);
+    progressMarker.style.left = `${pct}%`;
+    progressMarker.title = `Score de l'ami : ${wordsToBeat}`;
+  } else {
+    progressMarker.style.display = "none";
+  }
+  const progressBar = el("div", { className: "progress__bar" }, [
+    progressFill,
+    progressMarker,
+  ]);
+  const progressLabel = el("div", {
+    className: "progress__label",
+    textContent: `0 / ${maxWords} mots`,
+  });
+  const progressEl = el("div", { className: "progress" }, [progressBar, progressLabel]);
+
+  function updateProgress(): void {
+    const found = engine.wordCount;
+    const pct = maxWords > 0 ? Math.min(100, (found / maxWords) * 100) : 0;
+    progressFill.style.width = `${pct}%`;
+    progressLabel.textContent = `${found} / ${maxWords} mots`;
+    if (wordsToBeat != null) {
+      progressFill.classList.toggle("progress__fill--ahead", found > wordsToBeat);
+    }
+  }
+  updateProgress();
 
   // Build the 4x4 grid.
   const cells: HTMLElement[] = [];
@@ -93,6 +128,7 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
 
   function updateWords(): void {
     scoreEl.textContent = `${engine.score} pts`;
+    updateProgress();
     clear(wordsEl);
     for (const w of engine.foundWords.slice().reverse()) {
       wordsEl.append(el("li", { textContent: w.toUpperCase() }));
@@ -125,6 +161,7 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
   const header = el("div", { className: "game-header" }, [timerEl, scoreEl, beatEl]);
   const screen = el("div", { className: "screen screen--game" }, [
     header,
+    progressEl,
     gridWrap,
     currentEl,
     el("div", { className: "words-wrap" }, [wordsEl]),
