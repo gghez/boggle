@@ -256,6 +256,74 @@ body {
   letter-spacing: 2px;
 }
 
+/* Floating "WORD +N" gain popup above the grid */
+.gain {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, 0);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-weight: 800;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  animation: gain-float 1s ease-out forwards;
+}
+
+.gain__word {
+  color: #fff;
+  font-size: 1.3rem;
+  letter-spacing: 1px;
+}
+
+.gain__pts {
+  font-size: 1.6rem;
+}
+
+/* Color the +N by its point value */
+.gain__pts--p1 {
+  color: #9fb3d1;
+}
+.gain__pts--p2 {
+  color: #38c172;
+}
+.gain__pts--p3 {
+  color: #2bb3c0;
+}
+.gain__pts--p5 {
+  color: #ff9f43;
+}
+.gain__pts--p11 {
+  color: #ffd166;
+}
+
+@keyframes gain-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 12px) scale(0.85);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1.08);
+  }
+  35% {
+    transform: translate(-50%, -8px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -72px) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gain {
+    animation-duration: 0.5s;
+  }
+}
+
 /* Found words */
 .words-wrap {
   width: 100%;

@@ -3,7 +3,7 @@ import type { Dictionary } from "../dictionary";
 import { GameEngine, type SubmitResult } from "../game/engine";
 import { Countdown } from "../game/timer";
 import { SwipeController } from "../input/swipe";
-import { pathToWord } from "../game/rules";
+import { pathToWord, scoreWord } from "../game/rules";
 import { countWords } from "../game/solver";
 import { el, clear } from "./dom";
 
@@ -112,6 +112,19 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
     currentEl.textContent = pathToWord(board, path).toUpperCase();
   }
 
+  // Floating "WORD +N" popup above the grid; +N colored by its point value.
+  function showGain(word: string, points: number): void {
+    const gain = el("div", { className: "gain" }, [
+      el("span", { className: "gain__word", textContent: word.toUpperCase() }),
+      el("span", {
+        className: `gain__pts gain__pts--p${points}`,
+        textContent: `+${points}`,
+      }),
+    ]);
+    gridWrap.append(gain);
+    gain.addEventListener("animationend", () => gain.remove());
+  }
+
   function flash(result: SubmitResult): void {
     const cls =
       result === "valid-new"
@@ -141,7 +154,11 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
     (path) => {
       const result = engine.submitPath(path);
       flash(result);
-      if (result === "valid-new") updateWords();
+      if (result === "valid-new") {
+        const word = pathToWord(board, path);
+        showGain(word, scoreWord(word));
+        updateWords();
+      }
     },
   );
 
