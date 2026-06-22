@@ -7,19 +7,41 @@ export interface EndOptions {
   engine: GameEngine;
   board: Tile[];
   wordsToBeat: number | null;
+  maxWords: number;
+  maxScore: number;
   onReplay: () => void;
+}
+
+/** A congratulation line scaled to the share of the grid's top score reached. */
+function praiseFor(pct: number): { text: string; emoji: string } {
+  if (pct >= 100) return { text: "Grille parfaite !", emoji: "👑" };
+  if (pct >= 85) return { text: "Légendaire !", emoji: "🏆" };
+  if (pct >= 70) return { text: "Impressionnant !", emoji: "🌟" };
+  if (pct >= 50) return { text: "Excellent !", emoji: "🔥" };
+  if (pct >= 30) return { text: "Joli score !", emoji: "👏" };
+  if (pct >= 15) return { text: "Pas mal !", emoji: "🙂" };
+  if (pct > 0) return { text: "C'est un début…", emoji: "🌱" };
+  return { text: "Rien trouvé… on retente ?", emoji: "😅" };
 }
 
 /** Render the end-of-game summary with share + replay actions. */
 export function renderEnd(root: HTMLElement, opts: EndOptions): void {
-  const { engine, board, wordsToBeat, onReplay } = opts;
+  const { engine, board, wordsToBeat, maxWords, maxScore, onReplay } = opts;
   clear(root);
 
+  const pct = maxScore > 0 ? Math.round((engine.score / maxScore) * 100) : 0;
+  const praise = praiseFor(pct);
+
   const children: (Node | string)[] = [
-    el("h2", { className: "title", textContent: "Temps écoulé !" }),
+    el("div", { className: "praise-emoji", textContent: praise.emoji }),
+    el("h2", { className: "title", textContent: praise.text }),
     el("p", {
       className: "result",
-      textContent: `${engine.wordCount} mots — ${engine.score} pts`,
+      textContent: `${engine.wordCount} / ${maxWords} mots trouvés`,
+    }),
+    el("p", {
+      className: "result result--score",
+      textContent: `${engine.score} / ${maxScore} pts · ${pct}% du top`,
     }),
   ];
 

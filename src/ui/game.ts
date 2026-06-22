@@ -4,7 +4,7 @@ import { GameEngine, type SubmitResult } from "../game/engine";
 import { Countdown } from "../game/timer";
 import { SwipeController } from "../input/swipe";
 import { pathToWord, scoreWord } from "../game/rules";
-import { countWords } from "../game/solver";
+import { solveBoard } from "../game/solver";
 import { el, clear } from "./dom";
 
 export const TIMER_SECONDS = 180;
@@ -15,11 +15,16 @@ function formatTime(s: number): string {
   return `${m}:${sec.toString().padStart(2, "0")}`;
 }
 
+export interface GameStats {
+  maxWords: number;
+  maxScore: number;
+}
+
 export interface GameOptions {
   board: Tile[];
   dict: Dictionary;
   wordsToBeat: number | null;
-  onEnd: (engine: GameEngine) => void;
+  onEnd: (engine: GameEngine, stats: GameStats) => void;
 }
 
 /** Render the playable game screen and wire up swipe input + countdown. */
@@ -28,8 +33,10 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
   clear(root);
   const engine = new GameEngine(board, dict);
 
-  // Total number of words findable on this board (for the progress bar).
-  const maxWords = countWords(board, dict);
+  // All words findable on this board → max word count and max achievable score.
+  const allWords = solveBoard(board, dict);
+  const maxWords = allWords.size;
+  const maxScore = [...allWords].reduce((sum, w) => sum + scoreWord(w), 0);
 
   const timerEl = el("div", { className: "timer", textContent: formatTime(TIMER_SECONDS) });
   const scoreEl = el("div", { className: "score", textContent: "0 pts" });
@@ -170,7 +177,7 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
     },
     () => {
       swipe.destroy();
-      onEnd(engine);
+      onEnd(engine, { maxWords, maxScore });
     },
   );
   countdown.start();

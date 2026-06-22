@@ -70,6 +70,31 @@ body {
   color: var(--text);
 }
 
+.result--score {
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.praise-emoji {
+  font-size: 3.5rem;
+  line-height: 1;
+  animation: praise-pop 0.5s ease-out;
+}
+
+@keyframes praise-pop {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 /* Buttons */
 .btn {
   appearance: none;

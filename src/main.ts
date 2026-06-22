@@ -43,11 +43,13 @@ async function main() {
       board,
       dict,
       wordsToBeat,
-      onEnd: (engine) =>
+      onEnd: (engine, stats) =>
         renderEnd(root, {
           engine,
           board,
           wordsToBeat,
+          maxWords: stats.maxWords,
+          maxScore: stats.maxScore,
           onReplay: () => startGame(generateBoard(randomSeed()), null),
         }),
     });
