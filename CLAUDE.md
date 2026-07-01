@@ -20,3 +20,4 @@ French Boggle game: find as many words as possible in 3 minutes.
 ## Deployment
 
 - Pushing to `main` triggers a Netlify deploy to https://boggle-gghez.netlify.app/ (continuous deployment).
+- Manual CLI deploys (`npx netlify`) and details: @docs/agent-references/deployment.md
