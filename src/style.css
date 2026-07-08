@@ -47,7 +47,6 @@ body {
 }
 
 .screen--home,
-.screen--end,
 .screen--loading {
   justify-content: center;
   text-align: center;
@@ -59,20 +58,9 @@ body {
   letter-spacing: 1px;
 }
 
-.subtitle,
-.result {
+.subtitle {
   color: var(--muted);
   margin: 0;
-}
-
-.result {
-  font-size: 1.3rem;
-  color: var(--text);
-}
-
-.result--score {
-  color: var(--muted);
-  font-size: 1.1rem;
 }
 
 .praise-emoji {
@@ -385,18 +373,6 @@ body {
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 0.85rem;
-}
-
-.verdict {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0;
-}
-.verdict--win {
-  color: var(--new);
-}
-.verdict--lose {
-  color: var(--muted);
 }
 
 /* Loading */
