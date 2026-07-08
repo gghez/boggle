@@ -1,14 +1,17 @@
 :root {
-  --bg: #0f1726;
-  --surface: #1b2740;
-  --surface-2: #243352;
-  --primary: #4f8cff;
-  --primary-press: #3b6fd6;
-  --text: #eaf0ff;
-  --muted: #93a3c4;
-  --new: #38c172;
-  --dup: #6b7a99;
-  --bad: #e3506a;
+  /* Boggle's real-world palette: a cream box, ivory lettered dice, a golden
+     tray, a red wordmark. Warm and playful — the opposite of a generic dark UI. */
+  --bg: #fbf3e0; /* cream page — the game box */
+  --surface: #fffdf7; /* ivory — dice faces and cards */
+  --surface-2: #f3e7c9; /* warm sand — secondary buttons, chips */
+  --primary: #f5a623; /* Boggle gold — primary button, active die, progress */
+  --primary-press: #d98a0c;
+  --brand: #e23b2e; /* Boggle red — wordmark, markers */
+  --text: #2a2622; /* warm charcoal — dice letters, body copy */
+  --muted: #8c7b5e; /* warm brown-grey — subtitles, hints */
+  --new: #2e9e4f; /* found word — green (deep enough for white text) */
+  --dup: #b8a98c; /* duplicate — muted sand */
+  --bad: #e23b2e; /* invalid — Boggle red */
   --gap: 8px;
 }
 
@@ -68,6 +71,76 @@ body {
   letter-spacing: 1px;
 }
 
+/* Home title spelled out on tossed ivory dice — the signature Boggle cubes. */
+.brand-dice {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  letter-spacing: 0;
+}
+
+.brand-die {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(46px, 13vw, 68px);
+  aspect-ratio: 1 / 1;
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 14px;
+  font-size: clamp(1.7rem, 8vw, 2.6rem);
+  font-weight: 800;
+  /* Same raised-cube treatment as the board dice. */
+  box-shadow:
+    inset 0 3px 2px rgba(255, 255, 255, 0.75),
+    inset 0 -5px 6px rgba(90, 65, 25, 0.28),
+    0 4px 0 rgba(120, 90, 40, 0.32),
+    0 8px 10px rgba(80, 60, 20, 0.28);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  animation: die-drop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) backwards;
+}
+
+/* Each cube tossed at a slightly different angle, dropping in in sequence. */
+.brand-die:nth-child(1) {
+  transform: rotate(-6deg);
+  animation-delay: 0s;
+}
+.brand-die:nth-child(2) {
+  transform: rotate(4deg);
+  animation-delay: 0.06s;
+}
+.brand-die:nth-child(3) {
+  transform: rotate(-3deg);
+  animation-delay: 0.12s;
+}
+.brand-die:nth-child(4) {
+  transform: rotate(5deg);
+  animation-delay: 0.18s;
+}
+.brand-die:nth-child(5) {
+  transform: rotate(-5deg);
+  animation-delay: 0.24s;
+}
+.brand-die:nth-child(6) {
+  transform: rotate(3deg);
+  animation-delay: 0.3s;
+}
+
+@keyframes die-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-24px) rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-die {
+    animation: none;
+  }
+}
+
 .subtitle {
   color: var(--muted);
   margin: 0;
@@ -109,7 +182,8 @@ body {
 
 .btn--primary {
   background: var(--primary);
-  color: #fff;
+  /* Dark letters on the golden button — same reading as a Boggle die. */
+  color: var(--text);
 }
 
 .btn--primary:active {
@@ -190,9 +264,9 @@ body {
   bottom: -3px;
   width: 3px;
   margin-left: -1.5px;
-  background: #ffd166;
+  background: var(--brand);
   border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
 
 .progress__label {
@@ -228,6 +302,22 @@ body {
   aspect-ratio: 1 / 1;
 }
 
+/* The golden Boggle tray the dice sit in — a recessed panel framing the grid.
+   A negative inset keeps it off the grid's own box, so the swipe-path overlay
+   stays pixel-aligned to the cells. */
+.grid-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  border-radius: 22px;
+  background: linear-gradient(160deg, #f2cf83, #e7ba5f);
+  box-shadow:
+    inset 0 2px 5px rgba(120, 85, 25, 0.35),
+    inset 0 -2px 4px rgba(255, 255, 255, 0.25),
+    0 6px 16px rgba(120, 90, 30, 0.22);
+  z-index: 0;
+}
+
 /* Inside the board area the grid fills the (possibly shrunk) height and derives
    its width from it, so it stays square and centred rather than overflowing. */
 .board-area .grid-wrap {
@@ -244,6 +334,7 @@ body {
   grid-template-rows: repeat(4, 1fr);
   gap: var(--gap);
   touch-action: none;
+  z-index: 1; /* above the tray */
 }
 
 .cell {
@@ -255,6 +346,17 @@ body {
   font-size: clamp(1.5rem, 9vw, 2.6rem);
   font-weight: 700;
   user-select: none;
+  /* Make each cell read as a real Boggle die: a lit top edge, a shaded convex
+     bottom, a front-face "lip" for thickness, and a drop shadow so the cube
+     sits in the tray. The stack is background-independent, so the active/flash
+     colour swaps below still read as a raised cube. */
+  box-shadow:
+    inset 0 3px 2px rgba(255, 255, 255, 0.75),
+    inset 0 -5px 6px rgba(90, 65, 25, 0.28),
+    0 4px 0 rgba(120, 90, 40, 0.32),
+    0 8px 10px rgba(80, 60, 20, 0.28);
+  /* engraved letter */
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   transition: background 0.12s ease, transform 0.12s ease;
 }
 
@@ -264,7 +366,7 @@ body {
 
 .cell--active {
   background: var(--primary);
-  color: #fff;
+  color: var(--text);
   transform: scale(0.96);
 }
 
@@ -274,7 +376,7 @@ body {
 }
 .cell.flash--dup {
   background: var(--dup);
-  color: #fff;
+  color: var(--text);
 }
 .cell.flash--bad {
   background: var(--bad);
@@ -288,11 +390,12 @@ body {
   width: 100%;
   height: 100%;
   pointer-events: none;
+  z-index: 2; /* above the dice */
 }
 
 .path-line {
   fill: none;
-  stroke: rgba(79, 140, 255, 0.55);
+  stroke: rgba(245, 166, 35, 0.55);
   stroke-width: 14;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -362,12 +465,13 @@ body {
   white-space: nowrap;
   pointer-events: none;
   z-index: 5;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  /* Light halo separates the popup from the cream page / ivory dice below it. */
+  text-shadow: 0 1px 6px rgba(255, 255, 255, 0.9);
   animation: gain-float 1s ease-out forwards;
 }
 
 .gain__word {
-  color: #fff;
+  color: var(--text);
   font-size: 2rem;
   letter-spacing: 1px;
 }
@@ -376,21 +480,21 @@ body {
   font-size: 2.6rem;
 }
 
-/* Color the +N by its point value */
+/* Color the +N by its point value, escalating toward the Boggle red top tier. */
 .gain__pts--p1 {
-  color: #9fb3d1;
+  color: #8c7b5e;
 }
 .gain__pts--p2 {
-  color: #38c172;
+  color: #2e9e4f;
 }
 .gain__pts--p3 {
-  color: #2bb3c0;
+  color: #0f9aa8;
 }
 .gain__pts--p5 {
-  color: #ff9f43;
+  color: #e8820e;
 }
 .gain__pts--p11 {
-  color: #ffd166;
+  color: #e23b2e;
 }
 
 @keyframes gain-float {
@@ -605,7 +709,7 @@ body {
 }
 .tab--active {
   background: var(--primary);
-  color: #fff;
+  color: var(--text);
 }
 
 /* Scrollable chip list (the only region that scrolls). flex-basis 0 so it takes
@@ -639,7 +743,7 @@ body {
 }
 .chip--active {
   background: var(--primary);
-  color: #fff;
+  color: var(--text);
 }
 
 .actions--end {
