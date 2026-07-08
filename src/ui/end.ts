@@ -15,6 +15,7 @@ export interface EndOptions {
   definitions: Promise<DefinitionLookup>;
   onNewGrid: () => void;
   onReplaySame: () => void;
+  onHelp: () => void;
 }
 
 /** A congratulation line scaled to the share of the grid's top score reached. */
@@ -31,7 +32,7 @@ function praiseFor(pct: number): { text: string; emoji: string } {
 
 /** Render the end-of-game summary: tap a word to trace it + read its gloss. */
 export function renderEnd(root: HTMLElement, opts: EndOptions): void {
-  const { engine, board, wordsToBeat, maxWords, maxScore, paths, definitions, onNewGrid, onReplaySame } =
+  const { engine, board, wordsToBeat, maxWords, maxScore, paths, definitions, onNewGrid, onReplaySame, onHelp } =
     opts;
   clear(root);
 
@@ -153,8 +154,16 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
   // game, so the game→end transition doesn't move it. The definition banner
   // sits right under the word list; the actions live up top (out of the
   // list→grid flow). The chip list is the one flexible region that scrolls.
+  const helpBtn = el("button", {
+    className: "btn help-btn",
+    textContent: "?",
+    title: "Règles",
+    onclick: onHelp,
+  });
+
   root.append(
     el("div", { className: "screen screen--end" }, [
+      helpBtn,
       summary,
       actions,
       tabs,

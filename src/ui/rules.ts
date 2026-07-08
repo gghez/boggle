@@ -1,0 +1,87 @@
+import { el, clear } from "./dom";
+
+export interface RulesOptions {
+  onBack: () => void;
+}
+
+function section(title: string, body: (Node | string)[]): HTMLElement {
+  return el("section", { className: "rules-section" }, [
+    el("h2", { className: "rules-section__title", textContent: title }),
+    ...body,
+  ]);
+}
+
+function p(text: string): HTMLElement {
+  return el("p", { className: "rules-p", textContent: text });
+}
+
+function list(items: string[]): HTMLElement {
+  return el(
+    "ul",
+    { className: "rules-list" },
+    items.map((t) => el("li", { textContent: t })),
+  );
+}
+
+/**
+ * Render the rules page as a dedicated screen. The back button returns to the
+ * screen the player came from (home or end) via `onBack`.
+ */
+export function renderRules(root: HTMLElement, opts: RulesOptions): void {
+  clear(root);
+
+  const header = el("div", { className: "rules-header" }, [
+    el("button", { className: "btn rules-back", textContent: "← Retour", onclick: opts.onBack }),
+    el("h1", { className: "rules-title", textContent: "Règles" }),
+  ]);
+
+  const content = el("div", { className: "rules-content" }, [
+    section("Objectif", [
+      p("Trouve un maximum de mots en 3 minutes sur une grille de 4×4 lettres."),
+    ]),
+    section("La grille", [
+      p(
+        "La grille contient 16 dés. Chaque case montre une lettre — sauf la case « Qu », " +
+          "qui est une seule case comptant pour les deux lettres Q et U.",
+      ),
+    ]),
+    section("Former un mot", [
+      p(
+        "Un mot est un chemin sur la grille : commence sur n'importe quelle case, puis passe " +
+          "à une case adjacente — horizontalement, verticalement ou en diagonale (8 directions).",
+      ),
+      list([
+        "Une même case ne peut pas être réutilisée dans un mot.",
+        "Un mot fait au moins 3 lettres (la case « Qu » en apporte 2).",
+      ]),
+    ]),
+    section("Mots acceptés", [
+      p("Seuls comptent les mots valides du dictionnaire français."),
+      list([
+        "Pas de noms propres : personnes (dont noms de famille), lieux, marques. « Dupont », « Paris », « Zidane » sont refusés.",
+        "Pas d'abréviations ni de sigles.",
+        "Pas de mots à trait d'union ni de mots nécessitant une apostrophe.",
+      ]),
+      p("Les accents et les majuscules sont ignorés (é = e) : ils n'influent jamais sur la validité d'un mot."),
+    ]),
+    section("Score", [
+      p("Les points dépendent de la longueur du mot :"),
+      list([
+        "3 à 4 lettres : 1 point",
+        "5 lettres : 2 points",
+        "6 lettres : 3 points",
+        "7 lettres : 5 points",
+        "8 lettres et plus : 11 points",
+      ]),
+    ]),
+    section("Défier un ami", [
+      p(
+        "La grille et ton score à battre sont encodés dans un lien de partage. La personne qui " +
+          "l'ouvre joue exactement la même grille et voit combien de mots elle doit battre — " +
+          "aucun serveur, tout tient dans le lien.",
+      ),
+    ]),
+  ]);
+
+  root.append(el("div", { className: "screen screen--rules" }, [header, content]));
+}

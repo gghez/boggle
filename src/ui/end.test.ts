@@ -25,6 +25,7 @@ test("renders found and missed words as chips", () => {
     definitions: Promise.resolve(new DefinitionLookup(new Map())),
     onNewGrid: () => {},
     onReplaySame: () => {},
+    onHelp: () => {},
   });
   expect(root.querySelectorAll(".chip").length).toBe(2); // arc (found) + car (missed)
   expect(root.querySelector(".tab")!.textContent).toBe("Trouvés (1)");
@@ -42,6 +43,7 @@ test("tapping a word traces it and shows its definition", async () => {
     definitions: Promise.resolve(new DefinitionLookup(new Map([["arc", "Portion de courbe."]]))),
     onNewGrid: () => {},
     onReplaySame: () => {},
+    onHelp: () => {},
   });
   const chip = root.querySelector(".chip") as HTMLElement;
   chip.click();
@@ -64,6 +66,7 @@ test("missed word without a gloss shows a fallback", async () => {
     definitions: Promise.resolve(new DefinitionLookup(new Map())),
     onNewGrid: () => {},
     onReplaySame: () => {},
+    onHelp: () => {},
   });
   // "CAR" is the missed word; its chip exists in the DOM even while its tab is hidden.
   const carChip = [...root.querySelectorAll(".chip")].find(

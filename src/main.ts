@@ -5,6 +5,7 @@ import { loadDefinitions, type DefinitionLookup } from "./dictionary/definitions
 import { renderHome } from "./ui/home";
 import { renderGame } from "./ui/game";
 import { renderEnd } from "./ui/end";
+import { renderRules } from "./ui/rules";
 import { el, clear } from "./ui/dom";
 import "./style.css";
 
@@ -42,6 +43,16 @@ async function main() {
     return;
   }
 
+  // Show the rules on a dedicated screen; the back button returns to `onBack`.
+  const showRules = (onBack: () => void) => renderRules(root, { onBack });
+
+  const showHome = () =>
+    renderHome(
+      root,
+      () => startGame(generateBoard(randomSeed()), null),
+      () => showRules(showHome),
+    );
+
   const startGame = (board: Tile[], wordsToBeat: number | null) => {
     if (!definitionsPromise) definitionsPromise = loadDefinitions();
     renderGame(root, {
@@ -49,18 +60,22 @@ async function main() {
       dict,
       wordsToBeat,
       definitions: definitionsPromise!,
-      onEnd: (engine, stats) =>
-        renderEnd(root, {
-          engine,
-          board,
-          wordsToBeat,
-          maxWords: stats.maxWords,
-          maxScore: stats.maxScore,
-          paths: stats.paths,
-          definitions: definitionsPromise!,
-          onNewGrid: () => startGame(generateBoard(randomSeed()), null),
-          onReplaySame: () => startGame(board, wordsToBeat),
-        }),
+      onEnd: (engine, stats) => {
+        const showEnd = () =>
+          renderEnd(root, {
+            engine,
+            board,
+            wordsToBeat,
+            maxWords: stats.maxWords,
+            maxScore: stats.maxScore,
+            paths: stats.paths,
+            definitions: definitionsPromise!,
+            onNewGrid: () => startGame(generateBoard(randomSeed()), null),
+            onReplaySame: () => startGame(board, wordsToBeat),
+            onHelp: () => showRules(showEnd),
+          });
+        showEnd();
+      },
     });
   };
 
@@ -71,7 +86,7 @@ async function main() {
   if (challenge) {
     startGame(challenge.board, challenge.wordsToBeat);
   } else {
-    renderHome(root, () => startGame(generateBoard(randomSeed()), null));
+    showHome();
   }
 }
 

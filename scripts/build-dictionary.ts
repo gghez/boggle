@@ -2,11 +2,12 @@
  * Build the bundled French dictionary + definitions assets.
  *
  * Words: the `an-array-of-french-words` base list (MIT) unioned with the LEMMA
- * entries of the French Wiktionary extraction (kaikki.org) — inflected forms
- * (first sense tagged "form-of" or carrying a `form_of` field) and multi-word
- * locutions (raw `word` contains a space) are excluded, so the game gains
- * missing common words (fan, geek, web, ...) without ballooning to the full
- * ~1.8M-entry Wiktionary. Definitions: the first gloss seen per normalized
+ * entries of the French Wiktionary extraction (kaikki.org) — proper nouns (pos
+ * "name": surnames, given names, places, brands — forbidden in Boggle),
+ * inflected forms (first sense tagged "form-of" or carrying a `form_of` field)
+ * and multi-word locutions (raw `word` contains a space) are excluded, so the
+ * game gains missing common words (fan, geek, web, ...) without ballooning to
+ * the full ~1.8M-entry Wiktionary. Definitions: the first gloss seen per normalized
  * word, cleaned and truncated, kept ONLY for words that end up in the
  * dictionary. Both are normalized (accent-insensitive, a-z, length >= 3),
  * de-duplicated, sorted, gzipped.
@@ -67,6 +68,7 @@ interface WiktSense {
 }
 interface WiktEntry {
   word?: string;
+  pos?: string;
   senses?: WiktSense[];
 }
 
@@ -90,20 +92,29 @@ async function main() {
 
     const sense = entry.senses?.[0];
 
-    // First gloss seen for this normalized word (any entry, inflected forms
-    // included — "Pluriel de chat" is a fine gloss for a base-list plural).
+    // Proper nouns (surnames, given names, places, brands) are not valid Boggle
+    // words. kaikki marks them with a top-level pos of "name"; skip them for
+    // both the dictionary and gloss capture, so a kept homograph (e.g. the coin
+    // "napoléon", also the proper noun "Napoléon") never inherits a proper-noun
+    // definition.
+    const isProperNoun = entry.pos === "name";
+
+    // First gloss seen for this normalized word (any non-proper-noun entry,
+    // inflected forms included — "Pluriel de chat" is a fine gloss for a
+    // base-list plural).
     const gloss = sense?.glosses?.[0];
-    if (typeof gloss === "string" && gloss && !glosses.has(word)) {
+    if (!isProperNoun && typeof gloss === "string" && gloss && !glosses.has(word)) {
       const clean = truncateGloss(cleanGloss(gloss));
       if (clean) glosses.set(word, clean);
     }
 
-    // Only lemmas extend the dictionary: skip inflected forms (tagged
-    // "form-of" / carrying form_of) and multi-word locutions (space in raw).
-    // This keeps the word count sane for gameplay (~642k, not ~1.8M).
+    // Only common-word lemmas extend the dictionary: skip proper nouns (pos
+    // "name"), inflected forms (tagged "form-of" / carrying form_of) and
+    // multi-word locutions (space in raw). This keeps the word count sane for
+    // gameplay (~642k, not ~1.8M).
     const isInflected =
       (sense?.tags?.includes("form-of") ?? false) || (sense?.form_of?.length ?? 0) > 0;
-    if (!isInflected && !raw.includes(" ")) words.add(word);
+    if (!isProperNoun && !isInflected && !raw.includes(" ")) words.add(word);
   }
 
   mkdirSync("public", { recursive: true });
