@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#1565c0"/>
+  <rect width="512" height="512" rx="96" fill="#f5a623"/>
   <g>
-    <rect x="96"  y="96"  width="140" height="140" rx="28" fill="#ffffff"/>
-    <rect x="276" y="96"  width="140" height="140" rx="28" fill="#e3ecff"/>
-    <rect x="96"  y="276" width="140" height="140" rx="28" fill="#e3ecff"/>
-    <rect x="276" y="276" width="140" height="140" rx="28" fill="#ffffff"/>
+    <rect x="96"  y="96"  width="140" height="140" rx="28" fill="#fffdf7"/>
+    <rect x="276" y="96"  width="140" height="140" rx="28" fill="#f3e7c9"/>
+    <rect x="96"  y="276" width="140" height="140" rx="28" fill="#f3e7c9"/>
+    <rect x="276" y="276" width="140" height="140" rx="28" fill="#fffdf7"/>
   </g>
-  <g fill="#1565c0" font-family="system-ui, Arial, sans-serif" font-weight="700" font-size="96" text-anchor="middle">
+  <g fill="#2a2622" font-family="system-ui, Arial, sans-serif" font-weight="700" font-size="96" text-anchor="middle">
     <text x="166" y="200">B</text>
     <text x="346" y="200">O</text>
     <text x="166" y="380">G</text>
