@@ -10,10 +10,17 @@ French Boggle game: find as many words as possible in 3 minutes.
 - **Tests**: Vitest + jsdom.
 - **Dictionary**: two prebuilt gzip-compressed binaries decompressed in-app —
   `public/dictionary.bin` (word list: `an-array-of-french-words` unioned with
-  French Wiktionary lemma entries, inflected forms and locutions excluded) and
-  `public/definitions.bin` (TSV `word⇥gloss`, lazy-loaded on the end screen).
-  Regenerate both with `npm run build:dict` (tsx script).
+  French Wiktionary lemma entries, with proper nouns, inflected forms and
+  locutions excluded) and `public/definitions.bin` (TSV `word⇥gloss`,
+  lazy-loaded on the end screen). Regenerate both with `npm run build:dict`
+  (tsx script).
 - **Hosting**: Netlify static site, no backend.
+
+## Rules
+
+Game rules and the board-generation algorithm live in `docs/RULES.md`, and are
+readable in-app on a dedicated screen (`src/ui/rules.ts`) reachable via the "?"
+help button on the home and end screens.
 
 ## Scripts
 

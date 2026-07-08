@@ -42,13 +42,16 @@ HTTPS, which enables the native share sheet and PWA install on mobile.
 - `src/game/` — rules (adjacency, "Qu" handling, scoring), engine, countdown.
 - `src/input/swipe.ts` — pointer-based path tracking, validated on release.
 - `src/share/` — encode/decode the challenge into a URL token, native share.
-- `src/ui/` — Home / Game / End screens.
+- `src/ui/` — Home / Game / End / Rules screens.
 
 ## Rules
 
 4×4 grid, words ≥ 3 letters, 8-direction adjacency, no cell reuse. "Qu" is one
 cell but two letters. Scoring by length: 3-4 = 1, 5 = 2, 6 = 3, 7 = 5, 8+ = 11.
-Validation is accent-insensitive.
+Validation is accent-insensitive. Only valid dictionary words count — **no
+proper nouns** (excluded when the dictionary is built). Full rules and the
+board-generation algorithm: [`docs/RULES.md`](docs/RULES.md). They are also
+readable in-app via the "?" help button on the home and end screens.
 
 ## Dictionary
 
