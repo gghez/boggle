@@ -8,7 +8,11 @@ French Boggle game: find as many words as possible in 3 minutes.
 - **Build/dev**: Vite 6.
 - **PWA**: `vite-plugin-pwa` (Workbox service worker, `autoUpdate`), offline-capable.
 - **Tests**: Vitest + jsdom.
-- **Dictionary**: prebuilt gzip-compressed binary (`public/dictionary.bin`), decompressed in-app. Regenerate with `npm run build:dict` (tsx script).
+- **Dictionary**: two prebuilt gzip-compressed binaries decompressed in-app —
+  `public/dictionary.bin` (word list: `an-array-of-french-words` unioned with
+  French Wiktionary lemma entries, inflected forms and locutions excluded) and
+  `public/definitions.bin` (TSV `word⇥gloss`, lazy-loaded on the end screen).
+  Regenerate both with `npm run build:dict` (tsx script).
 - **Hosting**: Netlify static site, no backend.
 
 ## Scripts

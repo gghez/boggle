@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["dictionary.bin", "icon-192.png", "icon-512.png"],
+      includeAssets: ["dictionary.bin", "definitions.bin", "icon-192.png", "icon-512.png"],
       manifest: {
         name: "Boggle FR",
         short_name: "Boggle",
