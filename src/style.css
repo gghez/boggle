@@ -31,13 +31,20 @@ body {
 }
 
 #app {
-  min-height: 100%;
+  /* Bounded to the viewport (not min-height) so flex children with
+     overflow — the game word list, the end-screen chip list — actually
+     scroll instead of stretching the whole page. */
+  height: 100vh; /* fallback for browsers without dvh */
+  height: 100dvh;
   display: flex;
   flex-direction: column;
 }
 
 .screen {
   flex: 1;
+  /* Let the screen shrink to the bounded #app height instead of growing to
+     its content, so inner flex regions (word lists) can own the scroll. */
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -47,7 +54,6 @@ body {
 }
 
 .screen--home,
-.screen--end,
 .screen--loading {
   justify-content: center;
   text-align: center;
@@ -59,20 +65,9 @@ body {
   letter-spacing: 1px;
 }
 
-.subtitle,
-.result {
+.subtitle {
   color: var(--muted);
   margin: 0;
-}
-
-.result {
-  font-size: 1.3rem;
-  color: var(--text);
-}
-
-.result--score {
-  color: var(--muted);
-  font-size: 1.1rem;
 }
 
 .praise-emoji {
@@ -281,6 +276,50 @@ body {
   letter-spacing: 2px;
 }
 
+/* Found-word definition flashed just above the grid during play (~3s). */
+.game-def {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 8px);
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 8px 12px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 6;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  animation: game-def 3s ease forwards;
+}
+.game-def__word {
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-right: 6px;
+}
+.game-def__text {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+@keyframes game-def {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  6% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+}
+
 /* Floating "WORD +N" gain popup above the grid */
 .gain {
   position: absolute;
@@ -387,18 +426,6 @@ body {
   font-size: 0.85rem;
 }
 
-.verdict {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0;
-}
-.verdict--win {
-  color: var(--new);
-}
-.verdict--lose {
-  color: var(--muted);
-}
-
 /* Loading */
 .spinner {
   width: 36px;
@@ -433,4 +460,166 @@ body {
 .toast--in {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+/* End screen: fixed board + definition on top, scrollable word list below.
+   Bounded to the viewport height so only the chip list scrolls (the parent
+   #app is min-height:100%, which alone would let the whole page grow). */
+.screen--end {
+  justify-content: flex-start;
+  text-align: center;
+  gap: 10px;
+}
+
+/* Fixed zones keep their size; only .chips-scroll absorbs space and scrolls. */
+.end-summary,
+.grid-wrap--end,
+.def,
+.tabs,
+.actions--end {
+  flex-shrink: 0;
+}
+
+.end-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 480px;
+}
+.praise-emoji--sm {
+  font-size: 1.6rem;
+  animation: none;
+}
+.end-summary__praise {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.end-summary__stats {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.end-verdict {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.end-verdict--win {
+  color: var(--new);
+}
+.end-verdict--lose {
+  color: var(--muted);
+}
+
+/* Same board size/position as the in-game screen (bottom of the screen), so
+   the game→end transition doesn't move or resize it. Sizing is inherited from
+   .grid-wrap (width:100%, max-width:480px, aspect-ratio:1/1). */
+.grid-wrap--end {
+  margin: 0 auto;
+}
+
+/* Definition banner */
+.def {
+  width: 100%;
+  max-width: 480px;
+  min-height: 72px;
+  box-sizing: border-box;
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 10px 14px;
+  text-align: left;
+  overflow-y: auto;
+}
+.def--empty {
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.def--empty .def__word {
+  display: none;
+}
+.def__word {
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
+.def__text {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+/* Found/Missed tabs */
+.tabs {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 480px;
+}
+.tab {
+  flex: 1;
+  appearance: none;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--muted);
+  background: var(--surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.tab--active {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Scrollable chip list (the only region that scrolls) */
+.chips-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 480px;
+  overflow-y: auto;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+.chip {
+  appearance: none;
+  border: none;
+  background: var(--surface);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.chip--active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.actions--end {
+  width: 100%;
+  max-width: 480px;
+  gap: 8px;
+  flex-wrap: nowrap; /* keep the three actions on a single line */
+}
+/* Compact, equal-width action buttons so the three fit on one line. */
+.actions--end .btn {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 8px;
+  font-size: 0.95rem;
+  border-radius: 12px;
+  white-space: nowrap;
 }
