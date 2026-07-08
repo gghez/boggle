@@ -1,5 +1,6 @@
 import type { Tile } from "../grid/generator";
 import type { GameEngine } from "../game/engine";
+import type { DefinitionLookup } from "../dictionary/definitions";
 import { shareChallenge } from "../share/share";
 import { el, clear, toast } from "./dom";
 
@@ -9,6 +10,8 @@ export interface EndOptions {
   wordsToBeat: number | null;
   maxWords: number;
   maxScore: number;
+  paths: Map<string, number[]>;
+  definitions: Promise<DefinitionLookup>;
   onNewGrid: () => void;
   onReplaySame: () => void;
 }

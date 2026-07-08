@@ -1,6 +1,7 @@
 import { decodeChallenge } from "./share/codec";
 import { generateBoard, type Tile } from "./grid/generator";
 import { loadDictionary, type Dictionary } from "./dictionary";
+import { loadDefinitions, type DefinitionLookup } from "./dictionary/definitions";
 import { renderHome } from "./ui/home";
 import { renderGame } from "./ui/game";
 import { renderEnd } from "./ui/end";
@@ -10,6 +11,9 @@ import "./style.css";
 function randomSeed(): number {
   return Math.floor(Math.random() * 2 ** 31);
 }
+
+// Definitions are downloaded once, lazily, in the background at first game start.
+let definitionsPromise: Promise<DefinitionLookup> | null = null;
 
 function renderLoading(root: HTMLElement): void {
   clear(root);
@@ -39,6 +43,7 @@ async function main() {
   }
 
   const startGame = (board: Tile[], wordsToBeat: number | null) => {
+    if (!definitionsPromise) definitionsPromise = loadDefinitions();
     renderGame(root, {
       board,
       dict,
@@ -50,6 +55,8 @@ async function main() {
           wordsToBeat,
           maxWords: stats.maxWords,
           maxScore: stats.maxScore,
+          paths: stats.paths,
+          definitions: definitionsPromise!,
           onNewGrid: () => startGame(generateBoard(randomSeed()), null),
           onReplaySame: () => startGame(board, wordsToBeat),
         }),
