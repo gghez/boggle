@@ -4,7 +4,7 @@ import type { DefinitionLookup } from "../dictionary/definitions";
 import { GameEngine, type SubmitResult } from "../game/engine";
 import { Countdown } from "../game/timer";
 import { SwipeController } from "../input/swipe";
-import { pathToWord, scoreWord } from "../game/rules";
+import { pathToWord, scoreWord, humanReach } from "../game/rules";
 import { solveBoardWithPaths } from "../game/solver";
 import { el, clear } from "./dom";
 import { createBoardView } from "./board-view";
@@ -18,8 +18,8 @@ function formatTime(s: number): string {
 }
 
 export interface GameStats {
-  maxWords: number;
-  maxScore: number;
+  humanMaxWords: number;
+  humanMaxScore: number;
   paths: Map<string, number[]>;
 }
 
@@ -46,8 +46,11 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
   // Every word findable on this board, with a path for re-tracing on the end screen.
   const paths = solveBoardWithPaths(board, dict);
   const allWords = [...paths.keys()];
-  const maxWords = allWords.length;
-  const maxScore = allWords.reduce((sum, w) => sum + scoreWord(w), 0);
+  // The in-game progress and the end screen both chase the same reachable target:
+  // what a human could enter in the time limit, not the theoretical total that
+  // includes obscure words no one could reach in time (see humanReach).
+  const reach = humanReach(allWords.map(scoreWord), TIMER_SECONDS);
+  const goal = reach.words;
 
   const timerEl = el("div", { className: "timer", textContent: formatTime(TIMER_SECONDS) });
   const scoreEl = el("div", { className: "score", textContent: "0 pts" });
@@ -58,11 +61,11 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
   const currentEl = el("div", { className: "current" });
   const wordsEl = el("ul", { className: "words" });
 
-  // Progress bar: found / max words, with the friend's score marked in challenge mode.
+  // Progress bar: found / reachable goal, with the friend's score marked in challenge mode.
   const progressFill = el("div", { className: "progress__fill" });
   const progressMarker = el("div", { className: "progress__marker" });
-  if (wordsToBeat != null && maxWords > 0) {
-    const pct = Math.min(100, (wordsToBeat / maxWords) * 100);
+  if (wordsToBeat != null && goal > 0) {
+    const pct = Math.min(100, (wordsToBeat / goal) * 100);
     progressMarker.style.left = `${pct}%`;
     progressMarker.title = `Score de l'ami : ${wordsToBeat}`;
   } else {
@@ -74,15 +77,15 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
   ]);
   const progressLabel = el("div", {
     className: "progress__label",
-    textContent: `0 / ${maxWords} mots`,
+    textContent: `0 / ${goal} mots`,
   });
   const progressEl = el("div", { className: "progress" }, [progressBar, progressLabel]);
 
   function updateProgress(): void {
     const found = engine.wordCount;
-    const pct = maxWords > 0 ? Math.min(100, (found / maxWords) * 100) : 0;
+    const pct = goal > 0 ? Math.min(100, (found / goal) * 100) : 0;
     progressFill.style.width = `${pct}%`;
-    progressLabel.textContent = `${found} / ${maxWords} mots`;
+    progressLabel.textContent = `${found} / ${goal} mots`;
     if (wordsToBeat != null) {
       progressFill.classList.toggle("progress__fill--ahead", found > wordsToBeat);
     }
@@ -176,7 +179,7 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
     },
     () => {
       swipe.destroy();
-      onEnd(engine, { maxWords, maxScore, paths });
+      onEnd(engine, { humanMaxWords: reach.words, humanMaxScore: reach.score, paths });
     },
   );
   countdown.start();

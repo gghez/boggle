@@ -39,3 +39,29 @@ export function scoreWord(word: string): number {
   if (n === 7) return 5;
   return 11;
 }
+
+/**
+ * Seconds a player needs, at a standard non-stop pace, to spot and trace one
+ * word. This sets an input-throughput ceiling: setting vocabulary aside, nobody
+ * can enter more than `timer / SECONDS_PER_WORD` words in a game.
+ */
+export const SECONDS_PER_WORD = 4;
+
+/**
+ * The best score a human could realistically reach on a board, used to scale the
+ * end-screen rating. The ceiling is bounded not by vocabulary but by input
+ * throughput: in `timerSeconds`, a player entering words non-stop can play at
+ * most `timerSeconds / SECONDS_PER_WORD` of them, so the max obtainable is the
+ * sum of that many highest-scoring words (fewer if the board holds less).
+ */
+export function humanReach(
+  wordScores: number[],
+  timerSeconds: number,
+): { words: number; score: number } {
+  const cap = Math.floor(timerSeconds / SECONDS_PER_WORD);
+  const top = wordScores
+    .slice()
+    .sort((a, b) => b - a)
+    .slice(0, cap);
+  return { words: top.length, score: top.reduce((sum, s) => sum + s, 0) };
+}

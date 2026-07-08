@@ -74,6 +74,17 @@ export function renderRules(root: HTMLElement, opts: RulesOptions): void {
         "8 lettres et plus : 11 points",
       ]),
     ]),
+    section("Ton pourcentage", [
+      p(
+        "Le pourcentage final ne te compare pas à tous les mots cachés dans la grille — ce " +
+          "total inclut des mots trop obscurs pour être saisis à temps, il serait hors de portée.",
+      ),
+      p(
+        "Il te compare à un plafond humain réaliste : le score obtenu en enchaînant, sans " +
+          "t'arrêter et à un rythme normal, autant de mots que les 3 minutes permettent d'en " +
+          "saisir. 100 %, c'est donc un objectif atteignable — et un très bon joueur peut même le dépasser.",
+      ),
+    ]),
     section("Défier un ami", [
       p(
         "La grille et ton score à battre sont encodés dans un lien de partage. La personne qui " +
