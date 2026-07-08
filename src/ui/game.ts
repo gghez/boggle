@@ -6,6 +6,7 @@ import { SwipeController } from "../input/swipe";
 import { pathToWord, scoreWord } from "../game/rules";
 import { solveBoard } from "../game/solver";
 import { el, clear } from "./dom";
+import { createBoardView } from "./board-view";
 
 export const TIMER_SECONDS = 180;
 
@@ -78,45 +79,15 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
   }
   updateProgress();
 
-  // Build the 4x4 grid.
-  const cells: HTMLElement[] = [];
-  const gridEl = el("div", { className: "grid" });
-  board.forEach((tile, i) => {
-    const cell = el("div", { className: "cell" }, [
-      el("span", { className: "cell__letter", textContent: tile }),
-    ]);
-    cell.dataset.cell = String(i);
-    cells.push(cell);
-    gridEl.append(cell);
-  });
-
-  // SVG overlay for the swipe path line.
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.classList.add("path-overlay");
-  const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-  poly.classList.add("path-line");
-  svg.append(poly);
-
-  const gridWrap = el("div", { className: "grid-wrap" }, [gridEl, svg]);
+  // Shared 4x4 grid + SVG path overlay.
+  const view = createBoardView(board);
+  const cells = view.cells;
+  const gridEl = view.grid;
+  const gridWrap = view.element;
 
   function drawPath(path: number[]): void {
-    for (const c of cells) c.classList.remove("cell--active");
-    if (path.length === 0) {
-      poly.setAttribute("points", "");
-      currentEl.textContent = "";
-      return;
-    }
-    const wrapRect = gridWrap.getBoundingClientRect();
-    const points: string[] = [];
-    for (const i of path) {
-      cells[i].classList.add("cell--active");
-      const r = cells[i].getBoundingClientRect();
-      const x = r.left - wrapRect.left + r.width / 2;
-      const y = r.top - wrapRect.top + r.height / 2;
-      points.push(`${x},${y}`);
-    }
-    poly.setAttribute("points", points.join(" "));
-    currentEl.textContent = pathToWord(board, path).toUpperCase();
+    view.drawPath(path);
+    currentEl.textContent = path.length ? pathToWord(board, path).toUpperCase() : "";
   }
 
   // Floating "WORD +N" popup above the grid; +N colored by its point value.
