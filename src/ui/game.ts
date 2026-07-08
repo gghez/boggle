@@ -183,12 +183,14 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
 
   const header = el("div", { className: "game-header" }, [timerEl, scoreEl, beatEl]);
   // Grid sits at the bottom (thumb reach); info fills the space above it.
+  // .board-area bounds the grid to the available height so it never overflows
+  // the viewport (which would introduce a page scroll).
   const screen = el("div", { className: "screen screen--game" }, [
     header,
     progressEl,
     el("div", { className: "words-wrap words-wrap--grow" }, [wordsEl]),
     currentEl,
-    gridWrap,
+    el("div", { className: "board-area" }, [gridWrap]),
   ]);
   root.append(screen);
 }
