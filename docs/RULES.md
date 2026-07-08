@@ -45,6 +45,15 @@ Points are awarded by word length:
 | 7        | 5      |
 | 8 and up | 11     |
 
+## Your final rating
+
+The end-screen percentage does **not** compare your score to every word the
+board hides — that total includes obscure words no one could enter in time, so
+it would be unreachable. Instead it compares you to a **realistic human
+ceiling**: the score you would get by entering, non-stop at a standard pace, as
+many words as the 3 minutes physically allow (the highest-scoring ones). So 100%
+is a genuine, attainable target — and a very sharp player can even top it.
+
 ## Challenge a friend
 
 The whole grid and your score-to-beat are encoded into a share URL. Whoever

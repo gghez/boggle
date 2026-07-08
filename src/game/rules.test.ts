@@ -1,4 +1,4 @@
-import { areAdjacent, isValidPath, pathToWord, scoreWord } from "./rules";
+import { areAdjacent, isValidPath, pathToWord, scoreWord, humanReach, SECONDS_PER_WORD } from "./rules";
 
 test("adjacency on 4x4", () => {
   expect(areAdjacent(0, 1)).toBe(true); // right
@@ -27,4 +27,23 @@ test("scoring bareme", () => {
   expect(scoreWord("abcdefg")).toBe(5); // 7
   expect(scoreWord("abcdefgh")).toBe(11); // 8
   expect(scoreWord("abcdefghij")).toBe(11); // 8+
+});
+
+test("humanReach caps the ceiling at the highest-scoring enterable words", () => {
+  const cap = Math.floor(180 / SECONDS_PER_WORD); // 45 words in 3 minutes
+  // More words than a human could enter: only the top `cap` by score count.
+  const many = [
+    ...Array(cap).fill(11), // the best 45 words: 11 pts each
+    ...Array(50).fill(1), // extra words that don't fit the time budget
+  ];
+  expect(humanReach(many, 180)).toEqual({ words: cap, score: cap * 11 });
+});
+
+test("humanReach falls back to the whole board when it holds fewer words", () => {
+  // A sparse board: fewer words than the time budget allows, so all of them count.
+  expect(humanReach([3, 2, 1], 180)).toEqual({ words: 3, score: 6 });
+});
+
+test("humanReach handles an empty board", () => {
+  expect(humanReach([], 180)).toEqual({ words: 0, score: 0 });
 });

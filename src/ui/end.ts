@@ -9,8 +9,10 @@ export interface EndOptions {
   engine: GameEngine;
   board: Tile[];
   wordsToBeat: number | null;
-  maxWords: number;
-  maxScore: number;
+  // The realistic human ceiling (see humanReach) the player is rated against —
+  // not the theoretical total of every word the solver can reach.
+  humanMaxWords: number;
+  humanMaxScore: number;
   paths: Map<string, number[]>;
   definitions: Promise<DefinitionLookup>;
   onNewGrid: () => void;
@@ -18,9 +20,13 @@ export interface EndOptions {
   onHelp: () => void;
 }
 
-/** A congratulation line scaled to the share of the grid's top score reached. */
+/**
+ * A congratulation line scaled to the share of the realistic human ceiling
+ * reached (see humanReach); 100% means matching what a human could enter at a
+ * standard non-stop pace, so it can be met — and topped.
+ */
 function praiseFor(pct: number): { text: string; emoji: string } {
-  if (pct >= 100) return { text: "Grille parfaite !", emoji: "👑" };
+  if (pct >= 100) return { text: "Surhumain !", emoji: "👑" };
   if (pct >= 85) return { text: "Légendaire !", emoji: "🏆" };
   if (pct >= 70) return { text: "Impressionnant !", emoji: "🌟" };
   if (pct >= 50) return { text: "Excellent !", emoji: "🔥" };
@@ -32,11 +38,11 @@ function praiseFor(pct: number): { text: string; emoji: string } {
 
 /** Render the end-of-game summary: tap a word to trace it + read its gloss. */
 export function renderEnd(root: HTMLElement, opts: EndOptions): void {
-  const { engine, board, wordsToBeat, maxWords, maxScore, paths, definitions, onNewGrid, onReplaySame, onHelp } =
+  const { engine, board, wordsToBeat, humanMaxWords, humanMaxScore, paths, definitions, onNewGrid, onReplaySame, onHelp } =
     opts;
   clear(root);
 
-  const pct = maxScore > 0 ? Math.round((engine.score / maxScore) * 100) : 0;
+  const pct = humanMaxScore > 0 ? Math.round((engine.score / humanMaxScore) * 100) : 0;
   const praise = praiseFor(pct);
 
   const found = engine.foundWords.slice().sort();
@@ -49,7 +55,7 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
     el("span", { className: "end-summary__praise", textContent: praise.text }),
     el("span", {
       className: "end-summary__stats",
-      textContent: `${engine.wordCount}/${maxWords} mots · ${engine.score}/${maxScore} pts · ${pct}%`,
+      textContent: `${engine.wordCount}/${humanMaxWords} mots · ${engine.score}/${humanMaxScore} pts · ${pct}%`,
     }),
   ]);
   if (wordsToBeat != null) {
