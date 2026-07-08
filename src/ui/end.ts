@@ -160,7 +160,7 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
       tabs,
       chipsScroll,
       defBanner,
-      view.element,
+      el("div", { className: "board-area" }, [view.element]),
     ]),
   );
 }

@@ -21,6 +21,9 @@ html,
 body {
   margin: 0;
   height: 100%;
+  /* The app is a fixed viewport-height frame: the page itself must never
+     scroll. Only the in-app word lists (.words-wrap / .chips-scroll) scroll. */
+  overflow: hidden;
 }
 
 body {
@@ -200,11 +203,37 @@ body {
 }
 
 /* Grid */
+
+/* A flexible square that holds the grid. It sits last in the screen column and
+   provides a bounded, shrinkable height, so the grid stays a centred square and
+   never pushes the layout past the viewport (which would force a page scroll on
+   short/URL-bar-reduced viewports). aspect-ratio gives it a natural square size
+   (= its width); flex-shrink lets it give up height when space runs short. */
+.board-area {
+  flex: 0 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .grid-wrap {
   position: relative;
   width: 100%;
   max-width: 480px;
   aspect-ratio: 1 / 1;
+}
+
+/* Inside the board area the grid fills the (possibly shrunk) height and derives
+   its width from it, so it stays square and centred rather than overflowing. */
+.board-area .grid-wrap {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
 }
 
 .grid {
@@ -395,10 +424,12 @@ body {
   overflow-y: auto;
 }
 
-/* In-game: let the found-words area absorb space so the grid drops to the
-   bottom of the screen, within thumb reach. */
+/* In-game: the found-words area absorbs the leftover space so the grid drops to
+   the bottom of the screen (thumb reach). flex-basis 0 (not auto) means it only
+   takes the space left after the grid's natural size — the grid, the active play
+   area, keeps priority and its full size; the list just shrinks and scrolls. */
 .words-wrap--grow {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 0;
   display: flex;
   align-items: flex-start;
@@ -471,9 +502,9 @@ body {
   gap: 10px;
 }
 
-/* Fixed zones keep their size; only .chips-scroll absorbs space and scrolls. */
+/* Fixed zones keep their size; only .chips-scroll absorbs space and scrolls
+   (the board's .board-area may shrink to keep everything within the viewport). */
 .end-summary,
-.grid-wrap--end,
 .def,
 .tabs,
 .actions--end {
@@ -577,9 +608,12 @@ body {
   color: #fff;
 }
 
-/* Scrollable chip list (the only region that scrolls) */
+/* Scrollable chip list (the only region that scrolls). flex-basis 0 so it takes
+   only the leftover space: the board keeps its natural size (matching the game
+   screen, so the game→end transition doesn't resize it) and the chip list
+   shrinks and scrolls. */
 .chips-scroll {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 0;
   width: 100%;
   max-width: 480px;
