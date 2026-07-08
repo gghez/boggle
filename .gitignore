@@ -6,3 +6,10 @@ dev-dist
 
 # Local Netlify folder
 .netlify
+
+# Internal process scaffolding (specs, plans, execution ledger) — not product docs
+docs/superpowers/
+.superpowers/
+
+# Playwright MCP scratch output
+.playwright-mcp/

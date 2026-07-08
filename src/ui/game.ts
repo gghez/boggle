@@ -1,5 +1,6 @@
 import type { Tile } from "../grid/generator";
 import type { Dictionary } from "../dictionary";
+import type { DefinitionLookup } from "../dictionary/definitions";
 import { GameEngine, type SubmitResult } from "../game/engine";
 import { Countdown } from "../game/timer";
 import { SwipeController } from "../input/swipe";
@@ -26,13 +27,20 @@ export interface GameOptions {
   board: Tile[];
   dict: Dictionary;
   wordsToBeat: number | null;
+  definitions: Promise<DefinitionLookup>;
   onEnd: (engine: GameEngine, stats: GameStats) => void;
 }
 
 /** Render the playable game screen and wire up swipe input + countdown. */
 export function renderGame(root: HTMLElement, opts: GameOptions): void {
-  const { board, dict, wordsToBeat, onEnd } = opts;
+  const { board, dict, wordsToBeat, definitions, onEnd } = opts;
   clear(root);
+  // Definitions load in the background during play; once ready, a found word's
+  // gloss is flashed above the grid. Null until the asset resolves.
+  let defLookup: DefinitionLookup | null = null;
+  definitions.then((l) => {
+    defLookup = l;
+  });
   const engine = new GameEngine(board, dict);
 
   // Every word findable on this board, with a path for re-tracing on the end screen.
@@ -105,6 +113,22 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
     gain.addEventListener("animationend", () => gain.remove());
   }
 
+  // Flash a found word's definition above the grid for ~3s (one at a time).
+  let currentDef: HTMLElement | null = null;
+  function showDefinition(word: string, gloss: string): void {
+    if (currentDef) currentDef.remove();
+    const def = el("div", { className: "game-def" }, [
+      el("span", { className: "game-def__word", textContent: word.toUpperCase() }),
+      el("span", { className: "game-def__text", textContent: gloss }),
+    ]);
+    currentDef = def;
+    gridWrap.append(def);
+    def.addEventListener("animationend", () => {
+      def.remove();
+      if (currentDef === def) currentDef = null;
+    });
+  }
+
   function flash(result: SubmitResult): void {
     const cls =
       result === "valid-new"
@@ -137,6 +161,8 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
       if (result === "valid-new") {
         const word = pathToWord(board, path);
         showGain(word, scoreWord(word));
+        const gloss = defLookup?.get(word);
+        if (gloss) showDefinition(word, gloss);
         updateWords();
       }
     },

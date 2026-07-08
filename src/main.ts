@@ -48,6 +48,7 @@ async function main() {
       board,
       dict,
       wordsToBeat,
+      definitions: definitionsPromise!,
       onEnd: (engine, stats) =>
         renderEnd(root, {
           engine,

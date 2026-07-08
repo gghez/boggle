@@ -127,7 +127,7 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
   // Actions (unchanged behavior).
   const shareBtn = el("button", {
     className: "btn btn--primary",
-    textContent: "Défier un ami",
+    textContent: "📤 Défier",
     onclick: async () => {
       try {
         const res = await shareChallenge({ board, wordsToBeat: engine.wordCount });
@@ -137,10 +137,10 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
       }
     },
   });
-  const newGridBtn = el("button", { className: "btn", textContent: "Nouvelle grille", onclick: onNewGrid });
+  const newGridBtn = el("button", { className: "btn", textContent: "🎲 Nouvelle", onclick: onNewGrid });
   const replaySameBtn = el("button", {
     className: "btn",
-    textContent: "Rejouer cette grille",
+    textContent: "🔁 Rejouer",
     onclick: onReplaySame,
   });
   const actions = el("div", { className: "actions actions--end" }, [
@@ -149,14 +149,18 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
     replaySameBtn,
   ]);
 
+  // Grid stays last (bottom of the screen), exactly where it sat during the
+  // game, so the game→end transition doesn't move it. The definition banner
+  // sits right under the word list; the actions live up top (out of the
+  // list→grid flow). The chip list is the one flexible region that scrolls.
   root.append(
     el("div", { className: "screen screen--end" }, [
       summary,
-      view.element,
-      defBanner,
+      actions,
       tabs,
       chipsScroll,
-      actions,
+      defBanner,
+      view.element,
     ]),
   );
 }
