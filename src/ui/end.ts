@@ -2,6 +2,7 @@ import type { Tile } from "../grid/generator";
 import type { GameEngine } from "../game/engine";
 import type { DefinitionLookup } from "../dictionary/definitions";
 import { shareChallenge } from "../share/share";
+import { createBoardView } from "./board-view";
 import { el, clear, toast } from "./dom";
 
 export interface EndOptions {
@@ -28,43 +29,102 @@ function praiseFor(pct: number): { text: string; emoji: string } {
   return { text: "Rien trouvé… on retente ?", emoji: "😅" };
 }
 
-/** Render the end-of-game summary with share + replay actions. */
+/** Render the end-of-game summary: tap a word to trace it + read its gloss. */
 export function renderEnd(root: HTMLElement, opts: EndOptions): void {
-  const { engine, board, wordsToBeat, maxWords, maxScore, onNewGrid, onReplaySame } =
+  const { engine, board, wordsToBeat, maxWords, maxScore, paths, definitions, onNewGrid, onReplaySame } =
     opts;
   clear(root);
 
   const pct = maxScore > 0 ? Math.round((engine.score / maxScore) * 100) : 0;
   const praise = praiseFor(pct);
 
-  const children: (Node | string)[] = [
-    el("div", { className: "praise-emoji", textContent: praise.emoji }),
-    el("h2", { className: "title", textContent: praise.text }),
-    el("p", {
-      className: "result",
-      textContent: `${engine.wordCount} / ${maxWords} mots trouvés`,
-    }),
-    el("p", {
-      className: "result result--score",
-      textContent: `${engine.score} / ${maxScore} pts · ${pct}% du top`,
-    }),
-  ];
+  const found = engine.foundWords.slice().sort();
+  const foundSet = new Set(found);
+  const missed = [...paths.keys()].filter((w) => !foundSet.has(w)).sort();
 
+  // Compact summary line.
+  const summary = el("div", { className: "end-summary" }, [
+    el("span", { className: "praise-emoji praise-emoji--sm", textContent: praise.emoji }),
+    el("span", { className: "end-summary__praise", textContent: praise.text }),
+    el("span", {
+      className: "end-summary__stats",
+      textContent: `${engine.wordCount}/${maxWords} mots · ${engine.score}/${maxScore} pts · ${pct}%`,
+    }),
+  ]);
   if (wordsToBeat != null) {
     const beaten = engine.wordCount > wordsToBeat;
     const tied = engine.wordCount === wordsToBeat;
-    children.push(
-      el("p", {
-        className: beaten ? "verdict verdict--win" : "verdict verdict--lose",
-        textContent: beaten
-          ? "Tu as battu le score ! 🎉"
-          : tied
-            ? "Égalité !"
-            : `Pas battu (${wordsToBeat} à battre).`,
+    summary.append(
+      el("span", {
+        className: beaten ? "end-verdict end-verdict--win" : "end-verdict end-verdict--lose",
+        textContent: beaten ? "Battu ! 🎉" : tied ? "Égalité" : `${wordsToBeat} à battre`,
       }),
     );
   }
 
+  // Shared board for tracing a tapped word.
+  const view = createBoardView(board);
+  view.element.classList.add("grid-wrap--end");
+
+  // Definition banner (fixed height; empty state until a word is tapped).
+  const defWord = el("div", { className: "def__word" });
+  const defText = el("div", {
+    className: "def__text",
+    textContent: "Touche un mot pour voir sa définition et son tracé.",
+  });
+  const defBanner = el("div", { className: "def def--empty" }, [defWord, defText]);
+
+  let activeChip: HTMLElement | null = null;
+
+  function showWord(word: string, chip: HTMLElement): void {
+    if (activeChip) activeChip.classList.remove("chip--active");
+    activeChip = chip;
+    chip.classList.add("chip--active");
+
+    const path = paths.get(word);
+    if (path) view.drawPath(path);
+    else view.clearPath();
+
+    defBanner.classList.remove("def--empty");
+    defWord.textContent = word.toUpperCase();
+    defText.textContent = "…";
+    definitions.then((lookup) => {
+      if (activeChip !== chip) return; // a later tap won the race
+      defText.textContent = lookup.get(word) ?? "Définition indisponible.";
+    });
+  }
+
+  function chipList(words: string[]): HTMLElement {
+    const list = el("div", { className: "chips" });
+    for (const w of words) {
+      const chip = el("button", { className: "chip", textContent: w.toUpperCase() });
+      chip.addEventListener("click", () => showWord(w, chip));
+      list.append(chip);
+    }
+    return list;
+  }
+
+  const foundList = chipList(found);
+  const missedList = chipList(missed);
+  missedList.style.display = "none";
+
+  const tabFound = el("button", {
+    className: "tab tab--active",
+    textContent: `Trouvés (${found.length})`,
+  });
+  const tabMissed = el("button", { className: "tab", textContent: `Ratés (${missed.length})` });
+  function selectTab(isFound: boolean): void {
+    tabFound.classList.toggle("tab--active", isFound);
+    tabMissed.classList.toggle("tab--active", !isFound);
+    foundList.style.display = isFound ? "" : "none";
+    missedList.style.display = isFound ? "none" : "";
+  }
+  tabFound.addEventListener("click", () => selectTab(true));
+  tabMissed.addEventListener("click", () => selectTab(false));
+  const tabs = el("div", { className: "tabs" }, [tabFound, tabMissed]);
+  const chipsScroll = el("div", { className: "chips-scroll" }, [foundList, missedList]);
+
+  // Actions (unchanged behavior).
   const shareBtn = el("button", {
     className: "btn btn--primary",
     textContent: "Défier un ami",
@@ -77,29 +137,26 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
       }
     },
   });
-
-  const newGridBtn = el("button", {
-    className: "btn",
-    textContent: "Nouvelle grille",
-    onclick: onNewGrid,
-  });
-
+  const newGridBtn = el("button", { className: "btn", textContent: "Nouvelle grille", onclick: onNewGrid });
   const replaySameBtn = el("button", {
     className: "btn",
     textContent: "Rejouer cette grille",
     onclick: onReplaySame,
   });
+  const actions = el("div", { className: "actions actions--end" }, [
+    shareBtn,
+    newGridBtn,
+    replaySameBtn,
+  ]);
 
-  // Found words list.
-  const wordsEl = el("ul", { className: "words words--end" });
-  for (const w of engine.foundWords.sort()) {
-    wordsEl.append(el("li", { textContent: w.toUpperCase() }));
-  }
-
-  children.push(
-    el("div", { className: "actions" }, [shareBtn, newGridBtn, replaySameBtn]),
-    el("div", { className: "words-wrap" }, [wordsEl]),
+  root.append(
+    el("div", { className: "screen screen--end" }, [
+      summary,
+      view.element,
+      defBanner,
+      tabs,
+      chipsScroll,
+      actions,
+    ]),
   );
-
-  root.append(el("div", { className: "screen screen--end" }, children));
 }
