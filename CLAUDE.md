@@ -9,11 +9,14 @@ French Boggle game: find as many words as possible in 3 minutes.
 - **PWA**: `vite-plugin-pwa` (Workbox service worker, `autoUpdate`), offline-capable.
 - **Tests**: Vitest + jsdom.
 - **Dictionary**: two prebuilt gzip-compressed binaries decompressed in-app —
-  `public/dictionary.bin` (word list: `an-array-of-french-words` unioned with
-  French Wiktionary lemma entries, with proper nouns, inflected forms and
-  locutions excluded) and `public/definitions.bin` (TSV `word⇥gloss`,
-  lazy-loaded on the end screen). Regenerate both with `npm run build:dict`
-  (tsx script).
+  `public/dictionary.bin` (word list: ODS8, the official French Scrabble
+  dictionary, so only words officially valid for Scrabble are accepted — no
+  abbreviations or slang) and `public/definitions.bin` (TSV `word⇥gloss`,
+  glosses sourced from French Wiktionary for ODS8 words, lazy-loaded on the
+  end screen). Regenerate both with `npm run build:dict` (tsx script).
+- **Game history**: past games are logged to `localStorage`
+  (`src/history/store.ts`) and browsable in-app (`src/ui/history.ts`, from the
+  home screen); no backend, capped at 200 entries.
 - **Hosting**: Netlify static site, no backend.
 
 ## Rules

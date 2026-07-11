@@ -55,7 +55,9 @@ readable in-app via the "?" help button on the home and end screens.
 
 ## Dictionary
 
-Built at install time from
-[`an-array-of-french-words`](https://github.com/words/an-array-of-french-words)
-(MIT). Only the derived `public/dictionary.bin` (gzip-compressed, decompressed
-in-app) is committed.
+Built from the [ODS8](https://github.com/kamilmielnik/scrabble-dictionaries)
+word list (Officiel du jeu Scrabble, 8th edition) — the reference dictionary
+for competitive French Scrabble — so only officially valid Scrabble words are
+accepted, no abbreviations or slang. Only the derived `public/dictionary.bin`
+(gzip-compressed, decompressed in-app) is committed; regenerate it with
+`npm run build:dict`.
