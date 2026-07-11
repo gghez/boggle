@@ -1,4 +1,4 @@
-import type { Tile } from '../grid/generator';
+import type { Tile, MultiplierMap } from '../grid/generator';
 import type { GameEngine } from '../game/engine';
 import type { DefinitionLookup } from '../dictionary/definitions';
 import { shareChallenge } from '../share/share';
@@ -8,7 +8,8 @@ import { el, clear, toast } from './dom';
 export interface EndOptions {
   engine: GameEngine;
   board: Tile[];
-  wordsToBeat: number | null;
+  multipliers: MultiplierMap;
+  scoreToBeat: number | null;
   // The realistic human ceiling (see humanReach) the player is rated against —
   // not the theoretical total of every word the solver can reach.
   humanMaxWords: number;
@@ -42,7 +43,8 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
   const {
     engine,
     board,
-    wordsToBeat,
+    multipliers,
+    scoreToBeat,
     humanMaxWords,
     humanMaxScore,
     paths,
@@ -70,19 +72,19 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
       textContent: `${engine.wordCount}/${humanMaxWords} mots · ${engine.score}/${humanMaxScore} pts · ${pct}%`,
     }),
   ]);
-  if (wordsToBeat != null) {
-    const beaten = engine.wordCount > wordsToBeat;
-    const tied = engine.wordCount === wordsToBeat;
+  if (scoreToBeat != null) {
+    const beaten = engine.score > scoreToBeat;
+    const tied = engine.score === scoreToBeat;
     summary.append(
       el('span', {
         className: beaten ? 'end-verdict end-verdict--win' : 'end-verdict end-verdict--lose',
-        textContent: beaten ? 'Battu ! 🎉' : tied ? 'Égalité' : `${wordsToBeat} à battre`,
+        textContent: beaten ? 'Battu ! 🎉' : tied ? 'Égalité' : `${scoreToBeat} pts à battre`,
       }),
     );
   }
 
-  // Shared board for tracing a tapped word.
-  const view = createBoardView(board);
+  // Shared board for tracing a tapped word (bonus tiles shown).
+  const view = createBoardView(board, multipliers);
   view.element.classList.add('grid-wrap--end');
 
   // Definition banner (fixed height; empty state until a word is tapped).
@@ -149,7 +151,7 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
     textContent: '📤 Défier',
     onclick: async () => {
       try {
-        const res = await shareChallenge({ board, wordsToBeat: engine.wordCount });
+        const res = await shareChallenge({ board, multipliers, scoreToBeat: engine.score });
         if (res === 'copied' || res === 'manual') toast('Lien copié !');
       } catch {
         toast('Le partage a échoué');

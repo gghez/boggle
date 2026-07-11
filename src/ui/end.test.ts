@@ -1,12 +1,13 @@
 import { renderEnd } from './end';
 import { DefinitionLookup } from '../dictionary/definitions';
 import { GameEngine } from '../game/engine';
-import type { Tile } from '../grid/generator';
+import type { Tile, MultiplierMap } from '../grid/generator';
 
 const board: Tile[] = ['A', 'R', 'C', ...Array<Tile>(13).fill('Z')];
+const noBonus: MultiplierMap = new Array<null>(16).fill(null);
 
 function makeEngineWithArc(): GameEngine {
-  const engine = new GameEngine(board, { has: (w) => w === 'arc' });
+  const engine = new GameEngine(board, noBonus, { has: (w) => w === 'arc' });
   engine.submitPath([0, 1, 2]); // records "arc" as found
   return engine;
 }
@@ -18,7 +19,8 @@ test('renders found and missed words as chips', () => {
   renderEnd(root, {
     engine: makeEngineWithArc(),
     board,
-    wordsToBeat: null,
+    multipliers: noBonus,
+    scoreToBeat: null,
     humanMaxWords: 2,
     humanMaxScore: 2,
     paths: new Map([
@@ -40,7 +42,8 @@ test('tapping a word traces it and shows its definition', async () => {
   renderEnd(root, {
     engine: makeEngineWithArc(),
     board,
-    wordsToBeat: null,
+    multipliers: noBonus,
+    scoreToBeat: null,
     humanMaxWords: 1,
     humanMaxScore: 1,
     paths: new Map([['arc', [0, 1, 2]]]),
@@ -65,7 +68,8 @@ test('the home button invokes onHome', () => {
   renderEnd(root, {
     engine: makeEngineWithArc(),
     board,
-    wordsToBeat: null,
+    multipliers: noBonus,
+    scoreToBeat: null,
     humanMaxWords: 1,
     humanMaxScore: 1,
     paths: new Map([['arc', [0, 1, 2]]]),
@@ -84,7 +88,8 @@ test('missed word without a gloss shows a fallback', async () => {
   renderEnd(root, {
     engine: makeEngineWithArc(),
     board,
-    wordsToBeat: null,
+    multipliers: noBonus,
+    scoreToBeat: null,
     humanMaxWords: 2,
     humanMaxScore: 2,
     paths: new Map([

@@ -32,7 +32,7 @@ function legacyCopy(text: string): boolean {
  */
 export async function shareChallenge(c: Challenge): Promise<ShareOutcome> {
   const url = buildChallengeUrl(c, location.origin + location.pathname);
-  const text = `Bats mon score au Boggle : ${c.wordsToBeat} mots à battre !`;
+  const text = `Bats mon score au Boggle : ${c.scoreToBeat} pts à battre !`;
 
   if (navigator.share) {
     try {

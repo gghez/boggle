@@ -1,10 +1,17 @@
-import type { Tile } from '../grid/generator';
+import type { Tile, MultiplierMap } from '../grid/generator';
 import { clearHistory, deleteGame, listGames, type GameRecord } from '../history/store';
 import { el, clear } from './dom';
 
 export interface HistoryOptions {
   onBack: () => void;
-  onReplay: (board: Tile[], wordsToBeat: number | null) => void;
+  onReplay: (board: Tile[], multipliers: MultiplierMap, scoreToBeat: number | null) => void;
+}
+
+/** Bonus map for a record, tolerating older entries saved before bonuses existed. */
+function recordMultipliers(game: GameRecord): MultiplierMap {
+  return Array.isArray(game.multipliers)
+    ? game.multipliers
+    : new Array<null>(game.board.length).fill(null);
 }
 
 function formatDate(iso: string): string {
@@ -26,11 +33,11 @@ function gameRow(game: GameRecord, opts: HistoryOptions, onDeleted: () => void):
       className: 'history-row__stats',
       textContent: `${game.wordCount}/${game.humanMaxWords} mots · ${game.score}/${game.humanMaxScore} pts · ${pct}%`,
     }),
-    ...(game.wordsToBeat != null
+    ...(game.scoreToBeat != null
       ? [
           el('div', {
             className: 'history-row__badge',
-            textContent: `Défi : ${game.wordsToBeat} à battre`,
+            textContent: `Défi : ${game.scoreToBeat} pts à battre`,
           }),
         ]
       : []),
@@ -40,7 +47,7 @@ function gameRow(game: GameRecord, opts: HistoryOptions, onDeleted: () => void):
     className: 'btn history-row__btn',
     textContent: '🔁',
     title: 'Rejouer cette grille',
-    onclick: () => opts.onReplay(game.board, game.wordsToBeat),
+    onclick: () => opts.onReplay(game.board, recordMultipliers(game), game.scoreToBeat),
   });
   const deleteBtn = el('button', {
     className: 'btn history-row__btn',
