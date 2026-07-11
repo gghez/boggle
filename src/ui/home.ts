@@ -30,9 +30,9 @@ export function renderHome(
       textContent: 'Nouvelle partie',
       onclick: onStart,
     }),
-    el("button", {
-      className: "btn",
-      textContent: "🕘 Historique",
+    el('button', {
+      className: 'btn',
+      textContent: '🕘 Historique',
       onclick: onHistory,
     }),
   ]);

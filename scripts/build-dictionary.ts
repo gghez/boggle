@@ -22,17 +22,17 @@
  * memory or committed. Set KAIKKI_LOCAL=/path/to/fr.jsonl to reuse a
  * pre-downloaded copy instead of re-fetching.
  */
-import { writeFileSync, mkdirSync, statSync, createReadStream } from "node:fs";
-import { gzipSync } from "node:zlib";
-import { createInterface } from "node:readline";
-import { Readable } from "node:stream";
-import { normalizeWord } from "../src/dictionary/normalize";
-import { cleanGloss, truncateGloss } from "./gloss";
+import { writeFileSync, mkdirSync, statSync, createReadStream } from 'node:fs';
+import { gzipSync } from 'node:zlib';
+import { createInterface } from 'node:readline';
+import { Readable } from 'node:stream';
+import { normalizeWord } from '../src/dictionary/normalize';
+import { cleanGloss, truncateGloss } from './gloss';
 
 const ODS8_URL =
-  "https://raw.githubusercontent.com/kamilmielnik/scrabble-dictionaries/master/french/ods8.txt";
+  'https://raw.githubusercontent.com/kamilmielnik/scrabble-dictionaries/master/french/ods8.txt';
 const WIKT_URL =
-  "https://kaikki.org/frwiktionary/Fran%C3%A7ais/kaikki.org-dictionary-Fran%C3%A7ais.jsonl";
+  'https://kaikki.org/frwiktionary/Fran%C3%A7ais/kaikki.org-dictionary-Fran%C3%A7ais.jsonl';
 
 async function loadOds8Words(): Promise<Set<string>> {
   console.log(`Fetching ODS8 word list ...`);
@@ -40,7 +40,7 @@ async function loadOds8Words(): Promise<Set<string>> {
   if (!res.ok) throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
   const raw = await res.text();
   const set = new Set<string>();
-  for (const w of raw.split("\n")) {
+  for (const w of raw.split('\n')) {
     const n = normalizeWord(w);
     if (n.length >= 3) set.add(n);
   }
@@ -53,7 +53,7 @@ async function wiktionaryLines(): Promise<AsyncIterable<string>> {
   let input: Readable;
   if (local) {
     console.log(`Reading Wiktionary from local file ${local} ...`);
-    input = createReadStream(local, { encoding: "utf8" });
+    input = createReadStream(local, { encoding: 'utf8' });
   } else {
     console.log(`Streaming Wiktionary from ${WIKT_URL} (~3 GB) ...`);
     const res = await fetch(WIKT_URL);
@@ -84,11 +84,11 @@ async function main() {
     if (++seen % 200000 === 0) console.log(`  ...${seen} entries scanned`);
     let entry: WiktEntry;
     try {
-      entry = JSON.parse(line);
+      entry = JSON.parse(line) as WiktEntry;
     } catch {
       continue;
     }
-    const raw = entry.word ?? "";
+    const raw = entry.word ?? '';
     const word = normalizeWord(raw);
     if (word.length < 3) continue;
 
@@ -100,32 +100,34 @@ async function main() {
     // words. kaikki marks them with a top-level pos of "name"; skip them when
     // picking a gloss, so a kept homograph (e.g. the coin "napoléon", also the
     // proper noun "Napoléon") never inherits a proper-noun definition.
-    const isProperNoun = entry.pos === "name";
+    const isProperNoun = entry.pos === 'name';
 
     // First gloss seen for this ODS8 word (any non-proper-noun entry,
     // inflected forms included — "Pluriel de chat" is a fine gloss for a
     // base-list plural).
     const gloss = sense?.glosses?.[0];
-    if (!isProperNoun && typeof gloss === "string" && gloss && !glosses.has(word)) {
+    if (!isProperNoun && typeof gloss === 'string' && gloss && !glosses.has(word)) {
       const clean = truncateGloss(cleanGloss(gloss));
       if (clean) glosses.set(word, clean);
     }
   }
 
-  mkdirSync("public", { recursive: true });
+  mkdirSync('public', { recursive: true });
 
-  const dictText = [...words].sort().join("\n");
-  writeFileSync("public/dictionary.bin", gzipSync(dictText));
+  const dictText = [...words].sort().join('\n');
+  writeFileSync('public/dictionary.bin', gzipSync(dictText));
 
   const defWords = [...glosses.keys()].sort();
-  const defsText = defWords.map((w) => `${w}\t${glosses.get(w)}`).join("\n");
-  writeFileSync("public/definitions.bin", gzipSync(defsText));
+  const defsText = defWords.map((w) => `${w}\t${glosses.get(w)}`).join('\n');
+  writeFileSync('public/definitions.bin', gzipSync(defsText));
 
-  const defsMb = (statSync("public/definitions.bin").size / 1024 / 1024).toFixed(2);
+  const defsMb = (statSync('public/definitions.bin').size / 1024 / 1024).toFixed(2);
   console.log(`Wrote ${words.size} words -> public/dictionary.bin`);
   console.log(`Wrote ${defWords.length} glosses -> public/definitions.bin (${defsMb} MB)`);
   if (Number(defsMb) >= 10) {
-    console.warn(`WARNING: definitions.bin >= 10 MB — lower the truncation length passed to truncateGloss.`);
+    console.warn(
+      `WARNING: definitions.bin >= 10 MB — lower the truncation length passed to truncateGloss.`,
+    );
   }
 }
 

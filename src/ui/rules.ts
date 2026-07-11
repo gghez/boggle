@@ -1,25 +1,25 @@
-import { el, clear } from "./dom";
+import { el, clear } from './dom';
 
 export interface RulesOptions {
   onBack: () => void;
 }
 
 function section(title: string, body: (Node | string)[]): HTMLElement {
-  return el("section", { className: "rules-section" }, [
-    el("h2", { className: "rules-section__title", textContent: title }),
+  return el('section', { className: 'rules-section' }, [
+    el('h2', { className: 'rules-section__title', textContent: title }),
     ...body,
   ]);
 }
 
 function p(text: string): HTMLElement {
-  return el("p", { className: "rules-p", textContent: text });
+  return el('p', { className: 'rules-p', textContent: text });
 }
 
 function list(items: string[]): HTMLElement {
   return el(
-    "ul",
-    { className: "rules-list" },
-    items.map((t) => el("li", { textContent: t })),
+    'ul',
+    { className: 'rules-list' },
+    items.map((t) => el('li', { textContent: t })),
   );
 }
 
@@ -30,72 +30,74 @@ function list(items: string[]): HTMLElement {
 export function renderRules(root: HTMLElement, opts: RulesOptions): void {
   clear(root);
 
-  const header = el("div", { className: "rules-header" }, [
-    el("button", { className: "btn rules-back", textContent: "← Retour", onclick: opts.onBack }),
-    el("h1", { className: "rules-title", textContent: "Règles" }),
+  const header = el('div', { className: 'rules-header' }, [
+    el('button', { className: 'btn rules-back', textContent: '← Retour', onclick: opts.onBack }),
+    el('h1', { className: 'rules-title', textContent: 'Règles' }),
   ]);
 
-  const content = el("div", { className: "rules-content" }, [
-    section("Objectif", [
-      p("Trouve un maximum de mots en 3 minutes sur une grille de 4×4 lettres."),
+  const content = el('div', { className: 'rules-content' }, [
+    section('Objectif', [
+      p('Trouve un maximum de mots en 3 minutes sur une grille de 4×4 lettres.'),
     ]),
-    section("La grille", [
+    section('La grille', [
       p(
-        "La grille contient 16 dés. Chaque case montre une lettre — sauf la case « Qu », " +
-          "qui est une seule case comptant pour les deux lettres Q et U.",
+        'La grille contient 16 dés. Chaque case montre une lettre — sauf la case « Qu », ' +
+          'qui est une seule case comptant pour les deux lettres Q et U.',
       ),
     ]),
-    section("Former un mot", [
+    section('Former un mot', [
       p(
         "Un mot est un chemin sur la grille : commence sur n'importe quelle case, puis passe " +
-          "à une case adjacente — horizontalement, verticalement ou en diagonale (8 directions).",
+          'à une case adjacente — horizontalement, verticalement ou en diagonale (8 directions).',
       ),
       list([
-        "Une même case ne peut pas être réutilisée dans un mot.",
-        "Un mot fait au moins 3 lettres (la case « Qu » en apporte 2).",
+        'Une même case ne peut pas être réutilisée dans un mot.',
+        'Un mot fait au moins 3 lettres (la case « Qu » en apporte 2).',
       ]),
     ]),
-    section("Mots acceptés", [
+    section('Mots acceptés', [
       p(
         "Seuls comptent les mots présents dans l'ODS8 (Officiel du jeu Scrabble, " +
-          "8e édition), le dictionnaire de référence du Scrabble français en compétition.",
+          '8e édition), le dictionnaire de référence du Scrabble français en compétition.',
       ),
       list([
-        "Pas de noms propres : personnes (dont noms de famille), lieux, marques. « Dupont », « Paris », « Zidane » sont refusés.",
+        'Pas de noms propres : personnes (dont noms de famille), lieux, marques. « Dupont », « Paris », « Zidane » sont refusés.',
         "Pas d'abréviations ni de sigles.",
         "Pas de mots à trait d'union ni de mots nécessitant une apostrophe.",
       ]),
-      p("Les accents et les majuscules sont ignorés (é = e) : ils n'influent jamais sur la validité d'un mot."),
+      p(
+        "Les accents et les majuscules sont ignorés (é = e) : ils n'influent jamais sur la validité d'un mot.",
+      ),
     ]),
-    section("Score", [
-      p("Les points dépendent de la longueur du mot :"),
+    section('Score', [
+      p('Les points dépendent de la longueur du mot :'),
       list([
-        "3 à 4 lettres : 1 point",
-        "5 lettres : 2 points",
-        "6 lettres : 3 points",
-        "7 lettres : 5 points",
-        "8 lettres et plus : 11 points",
+        '3 à 4 lettres : 1 point',
+        '5 lettres : 2 points',
+        '6 lettres : 3 points',
+        '7 lettres : 5 points',
+        '8 lettres et plus : 11 points',
       ]),
     ]),
-    section("Ton pourcentage", [
+    section('Ton pourcentage', [
       p(
-        "Le pourcentage final ne te compare pas à tous les mots cachés dans la grille — ce " +
-          "total inclut des mots trop obscurs pour être saisis à temps, il serait hors de portée.",
+        'Le pourcentage final ne te compare pas à tous les mots cachés dans la grille — ce ' +
+          'total inclut des mots trop obscurs pour être saisis à temps, il serait hors de portée.',
       ),
       p(
-        "Il te compare à un plafond humain réaliste : le score obtenu en enchaînant, sans " +
+        'Il te compare à un plafond humain réaliste : le score obtenu en enchaînant, sans ' +
           "t'arrêter et à un rythme normal, autant de mots que les 3 minutes permettent d'en " +
           "saisir. 100 %, c'est donc un objectif atteignable — et un très bon joueur peut même le dépasser.",
       ),
     ]),
-    section("Défier un ami", [
+    section('Défier un ami', [
       p(
-        "La grille et ton score à battre sont encodés dans un lien de partage. La personne qui " +
+        'La grille et ton score à battre sont encodés dans un lien de partage. La personne qui ' +
           "l'ouvre joue exactement la même grille et voit combien de mots elle doit battre — " +
-          "aucun serveur, tout tient dans le lien.",
+          'aucun serveur, tout tient dans le lien.',
       ),
     ]),
   ]);
 
-  root.append(el("div", { className: "screen screen--rules" }, [header, content]));
+  root.append(el('div', { className: 'screen screen--rules' }, [header, content]));
 }

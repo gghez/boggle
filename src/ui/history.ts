@@ -1,6 +1,6 @@
-import type { Tile } from "../grid/generator";
-import { clearHistory, deleteGame, listGames, type GameRecord } from "../history/store";
-import { el, clear } from "./dom";
+import type { Tile } from '../grid/generator';
+import { clearHistory, deleteGame, listGames, type GameRecord } from '../history/store';
+import { el, clear } from './dom';
 
 export interface HistoryOptions {
   onBack: () => void;
@@ -8,48 +8,53 @@ export interface HistoryOptions {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
+  return new Date(iso).toLocaleString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 }
 
 function gameRow(game: GameRecord, opts: HistoryOptions, onDeleted: () => void): HTMLElement {
   const pct = game.humanMaxScore > 0 ? Math.round((game.score / game.humanMaxScore) * 100) : 0;
 
-  const info = el("div", { className: "history-row__info" }, [
-    el("div", { className: "history-row__date", textContent: formatDate(game.playedAt) }),
-    el("div", {
-      className: "history-row__stats",
+  const info = el('div', { className: 'history-row__info' }, [
+    el('div', { className: 'history-row__date', textContent: formatDate(game.playedAt) }),
+    el('div', {
+      className: 'history-row__stats',
       textContent: `${game.wordCount}/${game.humanMaxWords} mots · ${game.score}/${game.humanMaxScore} pts · ${pct}%`,
     }),
     ...(game.wordsToBeat != null
-      ? [el("div", { className: "history-row__badge", textContent: `Défi : ${game.wordsToBeat} à battre` })]
+      ? [
+          el('div', {
+            className: 'history-row__badge',
+            textContent: `Défi : ${game.wordsToBeat} à battre`,
+          }),
+        ]
       : []),
   ]);
 
-  const replayBtn = el("button", {
-    className: "btn history-row__btn",
-    textContent: "🔁",
-    title: "Rejouer cette grille",
+  const replayBtn = el('button', {
+    className: 'btn history-row__btn',
+    textContent: '🔁',
+    title: 'Rejouer cette grille',
     onclick: () => opts.onReplay(game.board, game.wordsToBeat),
   });
-  const deleteBtn = el("button", {
-    className: "btn history-row__btn",
-    textContent: "🗑️",
-    title: "Supprimer cette partie",
+  const deleteBtn = el('button', {
+    className: 'btn history-row__btn',
+    textContent: '🗑️',
+    title: 'Supprimer cette partie',
     onclick: () => {
       deleteGame(game.id);
       onDeleted();
     },
   });
 
-  return el("div", { className: "history-row" }, [
+  return el('div', { className: 'history-row' }, [
     info,
-    el("div", { className: "history-row__actions" }, [replayBtn, deleteBtn]),
+    el('div', { className: 'history-row__actions' }, [replayBtn, deleteBtn]),
   ]);
 }
 
@@ -59,16 +64,16 @@ export function renderHistory(root: HTMLElement, opts: HistoryOptions): void {
 
   const games = listGames();
 
-  const header = el("div", { className: "history-header" }, [
-    el("button", { className: "btn history-back", textContent: "← Retour", onclick: opts.onBack }),
-    el("h1", { className: "history-title", textContent: "Historique" }),
+  const header = el('div', { className: 'history-header' }, [
+    el('button', { className: 'btn history-back', textContent: '← Retour', onclick: opts.onBack }),
+    el('h1', { className: 'history-title', textContent: 'Historique' }),
   ]);
 
   if (games.length > 0) {
     header.append(
-      el("button", {
-        className: "btn history-clear",
-        textContent: "Vider",
+      el('button', {
+        className: 'btn history-clear',
+        textContent: 'Vider',
         onclick: () => {
           if (!confirm("Effacer tout l'historique des parties ?")) return;
           clearHistory();
@@ -78,11 +83,11 @@ export function renderHistory(root: HTMLElement, opts: HistoryOptions): void {
     );
   }
 
-  const list = el("div", { className: "history-list" });
+  const list = el('div', { className: 'history-list' });
   if (games.length === 0) {
     list.append(
-      el("p", {
-        className: "history-empty",
+      el('p', {
+        className: 'history-empty',
         textContent: "Aucune partie jouée pour l'instant.",
       }),
     );
@@ -92,5 +97,5 @@ export function renderHistory(root: HTMLElement, opts: HistoryOptions): void {
     }
   }
 
-  root.append(el("div", { className: "screen screen--history" }, [header, list]));
+  root.append(el('div', { className: 'screen screen--history' }, [header, list]));
 }

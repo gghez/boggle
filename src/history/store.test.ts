@@ -1,17 +1,18 @@
-import { beforeEach, expect, test } from "vitest";
-import { clearHistory, deleteGame, listGames, saveGame } from "./store";
+import { beforeEach, expect, test } from 'vitest';
+import { clearHistory, deleteGame, listGames, saveGame } from './store';
+import type { Tile } from '../grid/generator';
 
-const board = Array(16).fill("A");
+const board = Array<Tile>(16).fill('A');
 
 beforeEach(() => {
   localStorage.clear();
 });
 
-test("listGames is empty with no history", () => {
+test('listGames is empty with no history', () => {
   expect(listGames()).toEqual([]);
 });
 
-test("saveGame stores a record with an id and timestamp", () => {
+test('saveGame stores a record with an id and timestamp', () => {
   const saved = saveGame({
     board,
     score: 12,
@@ -28,7 +29,7 @@ test("saveGame stores a record with an id and timestamp", () => {
   expect(games[0]).toEqual(saved);
 });
 
-test("listGames returns most recent first", () => {
+test('listGames returns most recent first', () => {
   const first = saveGame({
     board,
     score: 1,
@@ -48,7 +49,7 @@ test("listGames returns most recent first", () => {
   expect(listGames().map((g) => g.id)).toEqual([second.id, first.id]);
 });
 
-test("deleteGame removes a single record", () => {
+test('deleteGame removes a single record', () => {
   const a = saveGame({
     board,
     score: 1,
@@ -69,15 +70,29 @@ test("deleteGame removes a single record", () => {
   expect(listGames().map((g) => g.id)).toEqual([b.id]);
 });
 
-test("clearHistory wipes everything", () => {
-  saveGame({ board, score: 1, wordCount: 1, humanMaxScore: 10, humanMaxWords: 10, wordsToBeat: null });
+test('clearHistory wipes everything', () => {
+  saveGame({
+    board,
+    score: 1,
+    wordCount: 1,
+    humanMaxScore: 10,
+    humanMaxWords: 10,
+    wordsToBeat: null,
+  });
   clearHistory();
   expect(listGames()).toEqual([]);
 });
 
-test("saveGame caps history at 200 entries, dropping the oldest", () => {
+test('saveGame caps history at 200 entries, dropping the oldest', () => {
   for (let i = 0; i < 201; i++) {
-    saveGame({ board, score: i, wordCount: i, humanMaxScore: 10, humanMaxWords: 10, wordsToBeat: null });
+    saveGame({
+      board,
+      score: i,
+      wordCount: i,
+      humanMaxScore: 10,
+      humanMaxWords: 10,
+      wordsToBeat: null,
+    });
   }
   const games = listGames();
   expect(games).toHaveLength(200);
@@ -86,7 +101,7 @@ test("saveGame caps history at 200 entries, dropping the oldest", () => {
   expect(games[0].score).toBe(200);
 });
 
-test("listGames tolerates corrupt storage", () => {
-  localStorage.setItem("boggle:history", "{not json");
+test('listGames tolerates corrupt storage', () => {
+  localStorage.setItem('boggle:history', '{not json');
   expect(listGames()).toEqual([]);
 });
