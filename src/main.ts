@@ -1,5 +1,10 @@
 import { decodeChallenge } from './share/codec';
-import { generateBoard, type Tile } from './grid/generator';
+import {
+  generateBoard,
+  generateMultipliers,
+  type Tile,
+  type MultiplierMap,
+} from './grid/generator';
 import { loadDictionary, type Dictionary } from './dictionary';
 import { loadDefinitions, type DefinitionLookup } from './dictionary/definitions';
 import { renderHome } from './ui/home';
@@ -60,40 +65,50 @@ async function main() {
   const historyView: View = () =>
     renderHistory(root, {
       onBack: () => router.back(),
-      onReplay: (board, wordsToBeat) => router.push(gameView(board, wordsToBeat)),
+      onReplay: (board, multipliers, scoreToBeat) =>
+        router.push(gameView(board, multipliers, scoreToBeat)),
     });
 
   const homeView: View = () =>
     renderHome(
       root,
-      () => router.push(gameView(generateBoard(randomSeed()), null)),
+      () => router.push(freshGame()),
       () => router.push(rulesView),
       () => router.push(historyView),
     );
+
+  // A brand-new grid: roll the board and its bonus tiles from one fresh seed, so
+  // both the letters and the bonus layout are reproducible from that seed.
+  const freshGame = (): View => {
+    const seed = randomSeed();
+    return gameView(generateBoard(seed), generateMultipliers(seed), null);
+  };
 
   // A finished game hands back to an end screen that *replaces* the game in
   // history: the game is over, so the back gesture should skip it and reach the
   // screen the game was launched from (home or history). New/replay games from
   // the end screen likewise replace it, keeping the stack shallow.
   const gameView =
-    (board: Tile[], wordsToBeat: number | null): View =>
+    (board: Tile[], multipliers: MultiplierMap, scoreToBeat: number | null): View =>
     () => {
       if (!definitionsPromise) definitionsPromise = loadDefinitions();
       const teardown = renderGame(root, {
         board,
+        multipliers,
         dict,
-        wordsToBeat,
+        scoreToBeat,
         definitions: definitionsPromise,
         onEnd: (engine, stats) => {
           saveGame({
             board,
+            multipliers,
             score: engine.score,
             wordCount: engine.wordCount,
             humanMaxScore: stats.humanMaxScore,
             humanMaxWords: stats.humanMaxWords,
-            wordsToBeat,
+            scoreToBeat,
           });
-          router.replace(endView(engine, board, wordsToBeat, stats));
+          router.replace(endView(engine, board, multipliers, scoreToBeat, stats));
         },
       });
       // A game runs to the buzzer: veto the back gesture so an edge-swipe (or a
@@ -107,18 +122,25 @@ async function main() {
     };
 
   const endView =
-    (engine: GameEngine, board: Tile[], wordsToBeat: number | null, stats: GameStats): View =>
+    (
+      engine: GameEngine,
+      board: Tile[],
+      multipliers: MultiplierMap,
+      scoreToBeat: number | null,
+      stats: GameStats,
+    ): View =>
     () =>
       renderEnd(root, {
         engine,
         board,
-        wordsToBeat,
+        multipliers,
+        scoreToBeat,
         humanMaxWords: stats.humanMaxWords,
         humanMaxScore: stats.humanMaxScore,
         paths: stats.paths,
         definitions: definitionsPromise!,
-        onNewGrid: () => router.replace(gameView(generateBoard(randomSeed()), null)),
-        onReplaySame: () => router.replace(gameView(board, wordsToBeat)),
+        onNewGrid: () => router.replace(freshGame()),
+        onReplaySame: () => router.replace(gameView(board, multipliers, scoreToBeat)),
         onHome: () => router.toRoot(),
         onHelp: () => router.push(rulesView),
       });
@@ -132,7 +154,7 @@ async function main() {
   // into a game.
   router.reset(homeView);
   if (challenge) {
-    router.push(gameView(challenge.board, challenge.wordsToBeat));
+    router.push(gameView(challenge.board, challenge.multipliers, challenge.scoreToBeat));
   }
 }
 

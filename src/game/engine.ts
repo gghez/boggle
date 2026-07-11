@@ -1,5 +1,5 @@
-import type { Tile } from '../grid/generator';
-import { isValidPath, pathToWord, scoreWord, MIN_WORD_LENGTH } from './rules';
+import type { Tile, MultiplierMap } from '../grid/generator';
+import { isValidPath, pathToWord, scorePath, MIN_WORD_LENGTH } from './rules';
 
 export type SubmitResult =
   'valid-new' | 'valid-duplicate' | 'invalid-path' | 'not-a-word' | 'too-short';
@@ -9,6 +9,7 @@ export class GameEngine {
   private _found = new Set<string>();
   constructor(
     private board: Tile[],
+    private multipliers: MultiplierMap,
     private dict: { has: (w: string) => boolean },
   ) {}
 
@@ -19,7 +20,8 @@ export class GameEngine {
     if (!this.dict.has(word)) return 'not-a-word';
     if (this._found.has(word)) return 'valid-duplicate';
     this._found.add(word);
-    this._score += scoreWord(word);
+    // Scored on the traced path so the bonus tiles it crosses count.
+    this._score += scorePath(this.board, this.multipliers, path);
     return 'valid-new';
   }
 

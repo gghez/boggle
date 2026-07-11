@@ -1,4 +1,4 @@
-import type { Tile } from '../grid/generator';
+import type { Tile, MultiplierMap } from '../grid/generator';
 
 /** A completed game, as logged to the local history. */
 export interface GameRecord {
@@ -6,12 +6,14 @@ export interface GameRecord {
   /** ISO timestamp of when the game ended. */
   playedAt: string;
   board: Tile[];
+  /** Bonus-tile layout of the board (parallel to `board`). */
+  multipliers: MultiplierMap;
   score: number;
   wordCount: number;
   humanMaxScore: number;
   humanMaxWords: number;
-  /** Word count to beat if this was a challenge, null for a plain game. */
-  wordsToBeat: number | null;
+  /** Score to beat if this was a challenge, null for a plain game. */
+  scoreToBeat: number | null;
 }
 
 const STORAGE_KEY = 'boggle:history';

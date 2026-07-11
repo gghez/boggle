@@ -222,16 +222,12 @@ body {
 }
 
 .score {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
 }
 
-.beat {
-  color: var(--muted);
-  font-size: 0.9rem;
-  text-align: right;
-}
-
-/* Progress bar */
+/* Progress bar (challenge only: run toward the score to beat) */
 .progress {
   width: 100%;
   max-width: 480px;
@@ -376,6 +372,35 @@ body {
   transform: scale(0.96);
 }
 
+/* Ruzzle-style bonus tile: a tinted rim + a corner badge (L×n letter, M×n word).
+   The badge sits above the swipe overlay so it stays legible while tracing. */
+.cell--bonus {
+  position: relative;
+}
+
+.cell__bonus {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  font-size: clamp(0.5rem, 2.4vw, 0.72rem);
+  font-weight: 800;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 6px;
+  color: #fff;
+  text-shadow: none;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.cell__bonus--letter {
+  background: #0f9aa8; /* teal — scales a single letter */
+}
+
+.cell__bonus--word {
+  background: #e23b2e; /* Boggle red — scales the whole word */
+}
+
 .cell.flash--new {
   background: var(--new);
   color: #fff;
@@ -486,20 +511,20 @@ body {
   font-size: 2.6rem;
 }
 
-/* Color the +N by its point value, escalating toward the Boggle red top tier. */
-.gain__pts--p1 {
+/* Color the +N by a point tier, escalating toward the Boggle red top tier. */
+.gain__pts--t1 {
   color: #8c7b5e;
 }
-.gain__pts--p2 {
+.gain__pts--t2 {
   color: #2e9e4f;
 }
-.gain__pts--p3 {
+.gain__pts--t3 {
   color: #0f9aa8;
 }
-.gain__pts--p5 {
+.gain__pts--t4 {
   color: #e8820e;
 }
-.gain__pts--p11 {
+.gain__pts--t5 {
   color: #e23b2e;
 }
 

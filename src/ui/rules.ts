@@ -44,6 +44,10 @@ export function renderRules(root: HTMLElement, opts: RulesOptions): void {
         'La grille contient 16 dés. Chaque case montre une lettre — sauf la case « Qu », ' +
           'qui est une seule case comptant pour les deux lettres Q et U.',
       ),
+      p(
+        'Quatre cases portent un bonus (à la Ruzzle) : L×2 / L×3 multiplient la valeur de ' +
+          'cette lettre, M×2 / M×3 multiplient le score du mot entier.',
+      ),
     ]),
     section('Former un mot', [
       p(
@@ -70,14 +74,25 @@ export function renderRules(root: HTMLElement, opts: RulesOptions): void {
       ),
     ]),
     section('Score', [
-      p('Les points dépendent de la longueur du mot :'),
+      p('Chaque lettre a une valeur, comme au Scrabble :'),
       list([
-        '3 à 4 lettres : 1 point',
-        '5 lettres : 2 points',
-        '6 lettres : 3 points',
-        '7 lettres : 5 points',
-        '8 lettres et plus : 11 points',
+        'E, A, I, N, O, R, S, T, U, L : 1 point',
+        'D, G, M : 2 points',
+        'B, C, P : 3 points',
+        'F, H, V : 4 points',
+        'J, Q : 8 points',
+        'K, W, X, Y, Z : 10 points',
+        '« Qu » : 9 points (Q + U)',
       ]),
+      p(
+        "Le score d'un mot = (somme des valeurs de ses lettres, bonus L×2/L×3 appliqués) × les " +
+          'bonus de mot M×2/M×3 traversés. On ajoute enfin un bonus de longueur : +5 points par ' +
+          'lettre au-delà de 4 (rien en dessous de 5 lettres).',
+      ),
+      p(
+        'Le score dépend donc du chemin tracé : passer par les bonnes cases bonus rapporte plus ' +
+          'pour un même mot.',
+      ),
     ]),
     section('Ton pourcentage', [
       p(
@@ -92,8 +107,8 @@ export function renderRules(root: HTMLElement, opts: RulesOptions): void {
     ]),
     section('Défier un ami', [
       p(
-        'La grille et ton score à battre sont encodés dans un lien de partage. La personne qui ' +
-          "l'ouvre joue exactement la même grille et voit combien de mots elle doit battre — " +
+        'La grille, ses cases bonus et ton score à battre sont encodés dans un lien de partage. ' +
+          "La personne qui l'ouvre joue exactement la même grille et doit dépasser ton score — " +
           'aucun serveur, tout tient dans le lien.',
       ),
     ]),

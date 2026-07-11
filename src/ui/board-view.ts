@@ -1,5 +1,13 @@
-import type { Tile } from '../grid/generator';
+import type { Tile, Multiplier, MultiplierMap } from '../grid/generator';
 import { el } from './dom';
+
+/** Short label shown on a bonus tile (L = lettre, M = mot). */
+const BONUS_LABEL: Record<Multiplier, string> = {
+  DL: 'L×2',
+  TL: 'L×3',
+  DW: 'M×2',
+  TW: 'M×3',
+};
 
 export interface BoardView {
   /** Root element (grid + path overlay) to insert into the DOM. */
@@ -15,13 +23,24 @@ export interface BoardView {
 }
 
 /** Build a Boggle board view: 4x4 letter grid + SVG path overlay. */
-export function createBoardView(board: Tile[]): BoardView {
+export function createBoardView(board: Tile[], multipliers?: MultiplierMap): BoardView {
   const cells: HTMLElement[] = [];
   const grid = el('div', { className: 'grid' });
   board.forEach((tile, i) => {
-    const cell = el('div', { className: 'cell' }, [
+    const children: (Node | string)[] = [
       el('span', { className: 'cell__letter', textContent: tile }),
-    ]);
+    ];
+    const bonus = multipliers?.[i] ?? null;
+    if (bonus) {
+      const isLetter = bonus === 'DL' || bonus === 'TL';
+      children.push(
+        el('span', {
+          className: `cell__bonus cell__bonus--${isLetter ? 'letter' : 'word'}`,
+          textContent: BONUS_LABEL[bonus],
+        }),
+      );
+    }
+    const cell = el('div', { className: bonus ? 'cell cell--bonus' : 'cell' }, children);
     cell.dataset.cell = String(i);
     cells.push(cell);
     grid.append(cell);

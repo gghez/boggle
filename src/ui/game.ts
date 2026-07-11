@@ -1,10 +1,10 @@
-import type { Tile } from '../grid/generator';
+import type { Tile, MultiplierMap } from '../grid/generator';
 import type { Dictionary } from '../dictionary';
 import type { DefinitionLookup } from '../dictionary/definitions';
 import { GameEngine, type SubmitResult } from '../game/engine';
 import { Countdown } from '../game/timer';
 import { SwipeController } from '../input/swipe';
-import { pathToWord, scoreWord, humanReach } from '../game/rules';
+import { pathToWord, scorePath, humanReach } from '../game/rules';
 import { solveBoardWithPaths } from '../game/solver';
 import { el, clear } from './dom';
 import { createBoardView } from './board-view';
@@ -25,8 +25,10 @@ export interface GameStats {
 
 export interface GameOptions {
   board: Tile[];
+  multipliers: MultiplierMap;
   dict: Dictionary;
-  wordsToBeat: number | null;
+  /** Opponent's score to beat in a challenge, null for a plain game. */
+  scoreToBeat: number | null;
   definitions: Promise<DefinitionLookup>;
   onEnd: (engine: GameEngine, stats: GameStats) => void;
 }
@@ -38,7 +40,7 @@ export interface GameOptions {
  * so a backgrounded game can't keep ticking and fire its end handler.
  */
 export function renderGame(root: HTMLElement, opts: GameOptions): () => void {
-  const { board, dict, wordsToBeat, definitions, onEnd } = opts;
+  const { board, multipliers, dict, scoreToBeat, definitions, onEnd } = opts;
   clear(root);
   // Definitions load in the background during play; once ready, a found word's
   // gloss is flashed above the grid. Null until the asset resolves.
@@ -46,56 +48,42 @@ export function renderGame(root: HTMLElement, opts: GameOptions): () => void {
   void definitions.then((l) => {
     defLookup = l;
   });
-  const engine = new GameEngine(board, dict);
+  const engine = new GameEngine(board, multipliers, dict);
 
   // Every word findable on this board, with a path for re-tracing on the end screen.
   const paths = solveBoardWithPaths(board, dict);
-  const allWords = [...paths.keys()];
-  // The in-game progress and the end screen both chase the same reachable target:
-  // what a human could enter in the time limit, not the theoretical total that
-  // includes obscure words no one could reach in time (see humanReach).
-  const reach = humanReach(allWords.map(scoreWord), TIMER_SECONDS);
-  const goal = reach.words;
+  // The end-screen rating chases a reachable target: what a human could enter in
+  // the time limit, scored on each word's found path (bonus tiles included), not
+  // the theoretical total of obscure words no one could reach in time (humanReach).
+  const wordScores = [...paths.values()].map((path) => scorePath(board, multipliers, path));
+  const reach = humanReach(wordScores, TIMER_SECONDS);
 
   const timerEl = el('div', { className: 'timer', textContent: formatTime(TIMER_SECONDS) });
   const scoreEl = el('div', { className: 'score', textContent: '0 pts' });
-  const beatEl =
-    wordsToBeat != null
-      ? el('div', { className: 'beat', textContent: `${wordsToBeat} mots à battre` })
-      : el('div', { className: 'beat' });
   const currentEl = el('div', { className: 'current' });
   const wordsEl = el('ul', { className: 'words' });
 
-  // Progress bar: found / reachable goal, with the friend's score marked in challenge mode.
+  // In a challenge, a score-based progress bar tracks the run toward the score to
+  // beat; it turns green once passed. Plain games show no bar (only the score).
   const progressFill = el('div', { className: 'progress__fill' });
-  const progressMarker = el('div', { className: 'progress__marker' });
-  if (wordsToBeat != null && goal > 0) {
-    const pct = Math.min(100, (wordsToBeat / goal) * 100);
-    progressMarker.style.left = `${pct}%`;
-    progressMarker.title = `Score de l'ami : ${wordsToBeat}`;
-  } else {
-    progressMarker.style.display = 'none';
-  }
-  const progressBar = el('div', { className: 'progress__bar' }, [progressFill, progressMarker]);
+  const progressBar = el('div', { className: 'progress__bar' }, [progressFill]);
   const progressLabel = el('div', {
     className: 'progress__label',
-    textContent: `0 / ${goal} mots`,
+    textContent: scoreToBeat != null ? `Score à battre : ${scoreToBeat}` : '',
   });
-  const progressEl = el('div', { className: 'progress' }, [progressBar, progressLabel]);
+  const progressEl =
+    scoreToBeat != null ? el('div', { className: 'progress' }, [progressBar, progressLabel]) : null;
 
   function updateProgress(): void {
-    const found = engine.wordCount;
-    const pct = goal > 0 ? Math.min(100, (found / goal) * 100) : 0;
+    if (scoreToBeat == null) return;
+    const pct = scoreToBeat > 0 ? Math.min(100, (engine.score / scoreToBeat) * 100) : 100;
     progressFill.style.width = `${pct}%`;
-    progressLabel.textContent = `${found} / ${goal} mots`;
-    if (wordsToBeat != null) {
-      progressFill.classList.toggle('progress__fill--ahead', found > wordsToBeat);
-    }
+    progressFill.classList.toggle('progress__fill--ahead', engine.score > scoreToBeat);
   }
   updateProgress();
 
-  // Shared 4x4 grid + SVG path overlay.
-  const view = createBoardView(board);
+  // Shared 4x4 grid + SVG path overlay (bonus tiles shown).
+  const view = createBoardView(board, multipliers);
   const cells = view.cells;
   const gridEl = view.grid;
   const gridWrap = view.element;
@@ -105,12 +93,20 @@ export function renderGame(root: HTMLElement, opts: GameOptions): () => void {
     currentEl.textContent = path.length ? pathToWord(board, path).toUpperCase() : '';
   }
 
-  // Floating "WORD +N" popup above the grid; +N colored by its point value.
+  // Floating "WORD +N" popup above the grid; +N colored by a point tier (scores
+  // are now open-ended, so we bucket by magnitude rather than exact value).
+  function gainTier(points: number): number {
+    if (points >= 40) return 5;
+    if (points >= 20) return 4;
+    if (points >= 10) return 3;
+    if (points >= 5) return 2;
+    return 1;
+  }
   function showGain(word: string, points: number): void {
     const gain = el('div', { className: 'gain' }, [
       el('span', { className: 'gain__word', textContent: word.toUpperCase() }),
       el('span', {
-        className: `gain__pts gain__pts--p${points}`,
+        className: `gain__pts gain__pts--t${gainTier(points)}`,
         textContent: `+${points}`,
       }),
     ]);
@@ -165,7 +161,7 @@ export function renderGame(root: HTMLElement, opts: GameOptions): () => void {
       flash(result);
       if (result === 'valid-new') {
         const word = pathToWord(board, path);
-        showGain(word, scoreWord(word));
+        showGain(word, scorePath(board, multipliers, path));
         const gloss = defLookup?.get(word);
         if (gloss) showDefinition(word, gloss);
         updateWords();
@@ -193,13 +189,13 @@ export function renderGame(root: HTMLElement, opts: GameOptions): () => void {
     swipe.destroy();
   };
 
-  const header = el('div', { className: 'game-header' }, [timerEl, scoreEl, beatEl]);
+  const header = el('div', { className: 'game-header' }, [timerEl, scoreEl]);
   // Grid sits at the bottom (thumb reach); info fills the space above it.
   // .board-area bounds the grid to the available height so it never overflows
   // the viewport (which would introduce a page scroll).
   const screen = el('div', { className: 'screen screen--game' }, [
     header,
-    progressEl,
+    ...(progressEl ? [progressEl] : []),
     el('div', { className: 'words-wrap words-wrap--grow' }, [wordsEl]),
     currentEl,
     el('div', { className: 'board-area' }, [gridWrap]),
