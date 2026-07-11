@@ -1,13 +1,23 @@
 import type { Tile, MultiplierMap } from '../grid/generator';
-import type { GameEngine } from '../game/engine';
 import type { DefinitionLookup } from '../dictionary/definitions';
 import { scorePath } from '../game/rules';
 import { shareChallenge } from '../share/share';
 import { createBoardView } from './board-view';
 import { el, clear, toast } from './dom';
 
+/**
+ * The finished-game data the end screen renders. `GameEngine` satisfies this
+ * structurally when a game just ended; a history record reconstructs it to
+ * re-view a past game's end screen.
+ */
+export interface GameResult {
+  score: number;
+  wordCount: number;
+  foundWords: string[];
+}
+
 export interface EndOptions {
-  engine: GameEngine;
+  engine: GameResult;
   board: Tile[];
   multipliers: MultiplierMap;
   scoreToBeat: number | null;

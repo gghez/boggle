@@ -9,8 +9,8 @@ import { loadDictionary, type Dictionary } from './dictionary';
 import { loadDefinitions, type DefinitionLookup } from './dictionary/definitions';
 import { renderHome } from './ui/home';
 import { renderGame, type GameStats } from './ui/game';
-import type { GameEngine } from './game/engine';
-import { renderEnd } from './ui/end';
+import { solveBoardWithPaths } from './game/solver';
+import { renderEnd, type GameResult } from './ui/end';
 import { renderRules } from './ui/rules';
 import { renderHistory } from './ui/history';
 import { Router, type View } from './ui/router';
@@ -69,6 +69,23 @@ async function main() {
       onBack: () => router.back(),
       onReplay: (board, multipliers, scoreToBeat) =>
         router.push(gameView(board, multipliers, scoreToBeat)),
+      // Re-view a past game's end screen: the found words are stored on the
+      // record, and every findable word (with its path) is re-solved from the
+      // board so the "Ratés" tab and word tracing work exactly as they did live.
+      onView: (game, multipliers) => {
+        if (!definitionsPromise) definitionsPromise = loadDefinitions();
+        const result: GameResult = {
+          score: game.score,
+          wordCount: game.wordCount,
+          foundWords: game.foundWords ?? [],
+        };
+        const stats: GameStats = {
+          humanMaxWords: game.humanMaxWords,
+          humanMaxScore: game.humanMaxScore,
+          paths: solveBoardWithPaths(game.board, dict),
+        };
+        router.push(endView(result, game.board, multipliers, game.scoreToBeat, stats));
+      },
     });
 
   const homeView: View = () =>
@@ -106,6 +123,7 @@ async function main() {
             multipliers,
             score: engine.score,
             wordCount: engine.wordCount,
+            foundWords: engine.foundWords,
             humanMaxScore: stats.humanMaxScore,
             humanMaxWords: stats.humanMaxWords,
             scoreToBeat,
@@ -132,7 +150,7 @@ async function main() {
 
   const endView =
     (
-      engine: GameEngine,
+      result: GameResult,
       board: Tile[],
       multipliers: MultiplierMap,
       scoreToBeat: number | null,
@@ -140,7 +158,7 @@ async function main() {
     ): View =>
     () =>
       renderEnd(root, {
-        engine,
+        engine: result,
         board,
         multipliers,
         scoreToBeat,

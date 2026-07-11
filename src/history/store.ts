@@ -12,6 +12,11 @@ export interface GameRecord {
   wordCount: number;
   humanMaxScore: number;
   humanMaxWords: number;
+  /**
+   * Words the player found, so the end-of-game screen can be replayed from
+   * history. Optional: records saved before this field existed omit it.
+   */
+  foundWords?: string[];
   /** Score to beat if this was a challenge, null for a plain game. */
   scoreToBeat: number | null;
 }
