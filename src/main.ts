@@ -137,7 +137,6 @@ async function main() {
         board,
         multipliers,
         scoreToBeat,
-        humanMaxWords: stats.humanMaxWords,
         humanMaxScore: stats.humanMaxScore,
         paths: stats.paths,
         definitions: definitionsPromise!,

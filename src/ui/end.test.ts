@@ -21,7 +21,6 @@ test('renders found and missed words as chips', () => {
     board,
     multipliers: noBonus,
     scoreToBeat: null,
-    humanMaxWords: 2,
     humanMaxScore: 2,
     paths: new Map([
       ['arc', [0, 1, 2]],
@@ -37,6 +36,24 @@ test('renders found and missed words as chips', () => {
   expect(root.querySelector('.tab')!.textContent).toBe('Trouvés (1)');
 });
 
+test('summary shows only word count and score (no ratios or percent)', () => {
+  const root = document.createElement('div');
+  renderEnd(root, {
+    engine: makeEngineWithArc(), // 1 word "arc" = 5 pts on a bonus-free board
+    board,
+    multipliers: noBonus,
+    scoreToBeat: null,
+    humanMaxScore: 100,
+    paths: new Map([['arc', [0, 1, 2]]]),
+    definitions: Promise.resolve(new DefinitionLookup(new Map())),
+    onNewGrid: () => {},
+    onReplaySame: () => {},
+    onHome: () => {},
+    onHelp: () => {},
+  });
+  expect(root.querySelector('.end-summary__stats')!.textContent).toBe('1 mots · 5 pts');
+});
+
 test('tapping a word traces it and shows its definition', async () => {
   const root = document.createElement('div');
   renderEnd(root, {
@@ -44,7 +61,6 @@ test('tapping a word traces it and shows its definition', async () => {
     board,
     multipliers: noBonus,
     scoreToBeat: null,
-    humanMaxWords: 1,
     humanMaxScore: 1,
     paths: new Map([['arc', [0, 1, 2]]]),
     definitions: Promise.resolve(new DefinitionLookup(new Map([['arc', 'Portion de courbe.']]))),
@@ -69,7 +85,6 @@ test('tapping a word shows its score in a badge (found and missed)', () => {
     board,
     multipliers: noBonus,
     scoreToBeat: null,
-    humanMaxWords: 2,
     humanMaxScore: 2,
     paths: new Map([
       ['arc', [0, 1, 2]],
@@ -105,7 +120,6 @@ test('the home button invokes onHome', () => {
     board,
     multipliers: noBonus,
     scoreToBeat: null,
-    humanMaxWords: 1,
     humanMaxScore: 1,
     paths: new Map([['arc', [0, 1, 2]]]),
     definitions: Promise.resolve(new DefinitionLookup(new Map())),
@@ -125,7 +139,6 @@ test('missed word without a gloss shows a fallback', async () => {
     board,
     multipliers: noBonus,
     scoreToBeat: null,
-    humanMaxWords: 2,
     humanMaxScore: 2,
     paths: new Map([
       ['arc', [0, 1, 2]],
