@@ -56,7 +56,10 @@ export function renderRules(root: HTMLElement, opts: RulesOptions): void {
       ]),
     ]),
     section("Mots acceptés", [
-      p("Seuls comptent les mots valides du dictionnaire français."),
+      p(
+        "Seuls comptent les mots présents dans l'ODS8 (Officiel du jeu Scrabble, " +
+          "8e édition), le dictionnaire de référence du Scrabble français en compétition.",
+      ),
       list([
         "Pas de noms propres : personnes (dont noms de famille), lieux, marques. « Dupont », « Paris », « Zidane » sont refusés.",
         "Pas d'abréviations ni de sigles.",
