@@ -777,10 +777,10 @@ body {
   position: relative;
 }
 
-.help-btn {
+.help-btn,
+.home-btn {
   position: absolute;
   top: max(12px, env(safe-area-inset-top));
-  right: max(12px, env(safe-area-inset-right));
   z-index: 8;
   width: 38px;
   height: 38px;
@@ -793,6 +793,15 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.help-btn {
+  right: max(12px, env(safe-area-inset-right));
+}
+
+/* Home button: mirror of the help button, pinned to the top-left. */
+.home-btn {
+  left: max(12px, env(safe-area-inset-left));
 }
 
 /* Rules page: a header row on top, a single scrollable content column below

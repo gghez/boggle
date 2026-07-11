@@ -31,8 +31,13 @@ export interface GameOptions {
   onEnd: (engine: GameEngine, stats: GameStats) => void;
 }
 
-/** Render the playable game screen and wire up swipe input + countdown. */
-export function renderGame(root: HTMLElement, opts: GameOptions): void {
+/**
+ * Render the playable game screen and wire up swipe input + countdown. Returns
+ * a teardown that stops the countdown and unbinds swipe input — the router runs
+ * it when the screen is left (e.g. the player uses the back gesture mid-game),
+ * so a backgrounded game can't keep ticking and fire its end handler.
+ */
+export function renderGame(root: HTMLElement, opts: GameOptions): () => void {
   const { board, dict, wordsToBeat, definitions, onEnd } = opts;
   clear(root);
   // Definitions load in the background during play; once ready, a found word's
@@ -181,6 +186,13 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
   );
   countdown.start();
 
+  // Teardown so leaving the screen (back gesture) can't leave a live timer or
+  // dangling window listener behind. Both calls are idempotent.
+  const destroy = () => {
+    countdown.stop();
+    swipe.destroy();
+  };
+
   const header = el('div', { className: 'game-header' }, [timerEl, scoreEl, beatEl]);
   // Grid sits at the bottom (thumb reach); info fills the space above it.
   // .board-area bounds the grid to the available height so it never overflows
@@ -193,4 +205,6 @@ export function renderGame(root: HTMLElement, opts: GameOptions): void {
     el('div', { className: 'board-area' }, [gridWrap]),
   ]);
   root.append(screen);
+
+  return destroy;
 }

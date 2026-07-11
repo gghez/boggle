@@ -17,6 +17,7 @@ export interface EndOptions {
   definitions: Promise<DefinitionLookup>;
   onNewGrid: () => void;
   onReplaySame: () => void;
+  onHome: () => void;
   onHelp: () => void;
 }
 
@@ -48,6 +49,7 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
     definitions,
     onNewGrid,
     onReplaySame,
+    onHome,
     onHelp,
   } = opts;
   clear(root);
@@ -180,9 +182,16 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
     title: 'Règles',
     onclick: onHelp,
   });
+  const homeBtn = el('button', {
+    className: 'btn home-btn',
+    textContent: '🏠',
+    title: 'Accueil',
+    onclick: onHome,
+  });
 
   root.append(
     el('div', { className: 'screen screen--end' }, [
+      homeBtn,
       helpBtn,
       summary,
       actions,
