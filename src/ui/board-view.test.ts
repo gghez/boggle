@@ -6,8 +6,15 @@ const board: Tile[] = ['A', 'B', 'C', ...Array<Tile>(13).fill('Z')];
 test('createBoardView builds one cell per tile with its letter', () => {
   const view = createBoardView(board);
   expect(view.cells.length).toBe(16);
-  expect(view.cells[0].textContent).toBe('A');
+  expect(view.cells[0].querySelector('.cell__letter')!.textContent).toBe('A');
   expect(view.grid.querySelectorAll('.cell').length).toBe(16);
+});
+
+test('each cell shows its French Scrabble letter value', () => {
+  const view = createBoardView(board);
+  expect(view.cells[0].querySelector('.cell__value')!.textContent).toBe('1'); // A
+  expect(view.cells[1].querySelector('.cell__value')!.textContent).toBe('3'); // B
+  expect(view.cells[3].querySelector('.cell__value')!.textContent).toBe('10'); // Z
 });
 
 test('drawPath highlights the path cells and clearPath removes it', () => {

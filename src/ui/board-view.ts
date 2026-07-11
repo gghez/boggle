@@ -1,4 +1,5 @@
 import type { Tile, Multiplier, MultiplierMap } from '../grid/generator';
+import { letterValue } from '../game/rules';
 import { el } from './dom';
 
 /** Short label shown on a bonus tile (L = lettre, M = mot). */
@@ -29,6 +30,7 @@ export function createBoardView(board: Tile[], multipliers?: MultiplierMap): Boa
   board.forEach((tile, i) => {
     const children: (Node | string)[] = [
       el('span', { className: 'cell__letter', textContent: tile }),
+      el('span', { className: 'cell__value', textContent: String(letterValue(tile)) }),
     ];
     const bonus = multipliers?.[i] ?? null;
     if (bonus) {
