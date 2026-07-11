@@ -26,13 +26,25 @@ export class Router {
   // While set and returning false, back navigation off the current screen is
   // vetoed — used to keep an active game from being abandoned by an edge-swipe.
   private guard: (() => boolean) | null = null;
+  // When true, a back gesture from the root screen (home) is absorbed instead
+  // of being allowed to exit the app. `reset` seeds an extra "sentinel" history
+  // entry so the gesture produces a catchable `popstate` even in a standalone
+  // PWA, and `onPop` re-arms it rather than letting the entry be consumed.
+  private readonly trapRootBack: boolean;
 
-  constructor() {
+  constructor(opts: { trapRootBack?: boolean } = {}) {
+    this.trapRootBack = opts.trapRootBack ?? false;
     window.addEventListener('popstate', this.onPop);
   }
 
   private onPop = (e: PopStateEvent): void => {
     const i = (e.state as { i?: number } | null)?.i ?? 0;
+    if (this.trapRootBack && this.index === 0) {
+      // Sitting on the root screen: a back gesture here would close the app.
+      // Swallow it and re-arm the sentinel entry so the next one is caught too.
+      history.pushState({ i: 0 }, '');
+      return;
+    }
     if (i < this.index && this.guard && !this.guard()) {
       // The current screen vetoes going back (an active game). Restore the
       // entry the browser just popped and stay put, without re-rendering.
@@ -55,6 +67,9 @@ export class Router {
     this.stack = [view];
     this.index = 0;
     history.replaceState({ i: 0 }, '');
+    // Seed a sentinel entry below the root so the first back gesture from home
+    // is a catchable `popstate` (see `trapRootBack`) rather than an app exit.
+    if (this.trapRootBack) history.pushState({ i: 0 }, '');
     this.show(view);
   }
 

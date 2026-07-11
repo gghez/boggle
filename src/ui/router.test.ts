@@ -94,6 +94,29 @@ test('toRoot pops all the way back to index 0', () => {
   go.mockRestore();
 });
 
+test('trapRootBack absorbs the back gesture on the root screen', () => {
+  const root = document.createElement('div');
+  const push = vi.spyOn(history, 'pushState');
+  const router = new Router({ trapRootBack: true });
+  router.reset(view(root, 'home'));
+  // reset seeds a sentinel entry so the gesture is catchable.
+  expect(push).toHaveBeenCalledWith({ i: 0 }, '');
+  push.mockClear();
+  pop(0); // back gesture from home — would otherwise exit the app
+  expect(root.textContent).toBe('home'); // stayed put
+  expect(push).toHaveBeenCalledWith({ i: 0 }, ''); // sentinel re-armed
+  push.mockRestore();
+});
+
+test('trapRootBack still lets inner screens back out to home', () => {
+  const root = document.createElement('div');
+  const router = new Router({ trapRootBack: true });
+  router.reset(view(root, 'home'));
+  router.push(view(root, 'rules'));
+  pop(0); // back gesture from a pushed screen is a normal navigation
+  expect(root.textContent).toBe('home');
+});
+
 test('popstate into a stale, deeper index is clamped to a live screen', () => {
   const root = document.createElement('div');
   const router = new Router();
