@@ -1,7 +1,12 @@
 import { el, clear } from "./dom";
 
 /** Render the home screen with a "new game" button and a help button. */
-export function renderHome(root: HTMLElement, onStart: () => void, onHelp: () => void): void {
+export function renderHome(
+  root: HTMLElement,
+  onStart: () => void,
+  onHelp: () => void,
+  onHistory: () => void,
+): void {
   clear(root);
   // The title is spelled out on ivory dice, echoing the physical Boggle cubes.
   // The letters are decorative (aria-hidden); the <h1> carries the accessible name.
@@ -24,6 +29,11 @@ export function renderHome(root: HTMLElement, onStart: () => void, onHelp: () =>
       className: "btn btn--primary",
       textContent: "Nouvelle partie",
       onclick: onStart,
+    }),
+    el("button", {
+      className: "btn",
+      textContent: "🕘 Historique",
+      onclick: onHistory,
     }),
   ]);
   root.append(screen);
