@@ -56,7 +56,9 @@ async function main() {
   // View thunk pushed onto a stack that mirrors the browser history, so the
   // native back gesture/button walks between screens. Each screen is defined as
   // a View (a `() => render(...)`) and handed to router.push/replace.
-  const router = new Router();
+  // `trapRootBack` absorbs the back gesture on the home screen so it can't
+  // close the app outright (there's nothing to go back to below home).
+  const router = new Router({ trapRootBack: true });
 
   // Rules and history are always pushed on top, so their "← Retour" button and
   // the native back gesture both just pop back to whatever screen they sit on.
