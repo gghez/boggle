@@ -31,6 +31,10 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,bin,png,svg}"],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+        // Purge previously precached assets (old icons included) as soon as a
+        // new service worker activates, instead of leaving them in the cache
+        // storage indefinitely.
+        cleanupOutdatedCaches: true,
       },
     }),
   ],
