@@ -11,9 +11,8 @@ export interface EndOptions {
   board: Tile[];
   multipliers: MultiplierMap;
   scoreToBeat: number | null;
-  // The realistic human ceiling (see humanReach) the player is rated against —
-  // not the theoretical total of every word the solver can reach.
-  humanMaxWords: number;
+  // The realistic human ceiling (see humanReach) the player's praise line is
+  // scaled against — not the theoretical total of every word the solver reaches.
   humanMaxScore: number;
   paths: Map<string, number[]>;
   definitions: Promise<DefinitionLookup>;
@@ -46,7 +45,6 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
     board,
     multipliers,
     scoreToBeat,
-    humanMaxWords,
     humanMaxScore,
     paths,
     definitions,
@@ -70,7 +68,7 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
     el('span', { className: 'end-summary__praise', textContent: praise.text }),
     el('span', {
       className: 'end-summary__stats',
-      textContent: `${engine.wordCount}/${humanMaxWords} mots · ${engine.score}/${humanMaxScore} pts · ${pct}%`,
+      textContent: `${engine.wordCount} mots · ${engine.score} pts`,
     }),
   ]);
   if (scoreToBeat != null) {
