@@ -1,0 +1,5 @@
+node_modules
+dist
+dev-dist
+public/dictionary.bin
+public/definitions.bin

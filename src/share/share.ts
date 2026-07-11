@@ -1,6 +1,6 @@
-import { encodeChallenge, type Challenge } from "./codec";
+import { encodeChallenge, type Challenge } from './codec';
 
-export type ShareOutcome = "shared" | "copied" | "manual" | "cancelled";
+export type ShareOutcome = 'shared' | 'copied' | 'manual' | 'cancelled';
 
 /** Build the full challenge URL (token in the `c` query param). */
 export function buildChallengeUrl(c: Challenge, base: string): string {
@@ -10,13 +10,13 @@ export function buildChallengeUrl(c: Challenge, base: string): string {
 /** Legacy clipboard copy that works in non-secure (HTTP) contexts. */
 function legacyCopy(text: string): boolean {
   try {
-    const ta = document.createElement("textarea");
+    const ta = document.createElement('textarea');
     ta.value = text;
-    ta.style.position = "fixed";
-    ta.style.opacity = "0";
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
     document.body.append(ta);
     ta.select();
-    const ok = document.execCommand("copy");
+    const ok = document.execCommand('copy');
     ta.remove();
     return ok;
   } catch {
@@ -36,12 +36,12 @@ export async function shareChallenge(c: Challenge): Promise<ShareOutcome> {
 
   if (navigator.share) {
     try {
-      await navigator.share({ title: "Boggle", text, url });
-      return "shared";
+      await navigator.share({ title: 'Boggle', text, url });
+      return 'shared';
     } catch (err) {
       // User dismissed the sheet → genuine cancel; anything else falls through.
-      if (err instanceof DOMException && err.name === "AbortError") {
-        return "cancelled";
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return 'cancelled';
       }
     }
   }
@@ -49,15 +49,15 @@ export async function shareChallenge(c: Challenge): Promise<ShareOutcome> {
   if (navigator.clipboard?.writeText) {
     try {
       await navigator.clipboard.writeText(url);
-      return "copied";
+      return 'copied';
     } catch {
       /* fall through to legacy copy */
     }
   }
 
-  if (legacyCopy(url)) return "copied";
+  if (legacyCopy(url)) return 'copied';
 
   // Last resort: show the link so it can be copied by hand.
-  window.prompt("Copie ce lien et envoie-le à ton ami :", url);
-  return "manual";
+  window.prompt('Copie ce lien et envoie-le à ton ami :', url);
+  return 'manual';
 }

@@ -45,8 +45,8 @@ export class Dictionary {
 /** Fetch and decompress the bundled gzip word list into a Dictionary. */
 export async function loadDictionary(): Promise<Dictionary> {
   const res = await fetch(`${import.meta.env.BASE_URL}dictionary.bin`);
-  const ds = new DecompressionStream("gzip");
+  const ds = new DecompressionStream('gzip');
   const stream = res.body!.pipeThrough(ds);
   const text = await new Response(stream).text();
-  return new Dictionary(text.split("\n").filter(Boolean));
+  return new Dictionary(text.split('\n').filter(Boolean));
 }

@@ -1,9 +1,9 @@
-import { buildChallengeUrl } from "./share";
+import { buildChallengeUrl } from './share';
 
-test("builds url with token param", () => {
+test('builds url with token param', () => {
   const url = buildChallengeUrl(
-    { board: Array(16).fill("A"), wordsToBeat: 5 },
-    "https://x.app/",
+    { board: Array<string>(16).fill('A'), wordsToBeat: 5 },
+    'https://x.app/',
   );
-  expect(url.startsWith("https://x.app/?c=")).toBe(true);
+  expect(url.startsWith('https://x.app/?c=')).toBe(true);
 });

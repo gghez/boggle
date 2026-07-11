@@ -1,13 +1,13 @@
-import { decodeChallenge } from "./share/codec";
-import { generateBoard, type Tile } from "./grid/generator";
-import { loadDictionary, type Dictionary } from "./dictionary";
-import { loadDefinitions, type DefinitionLookup } from "./dictionary/definitions";
-import { renderHome } from "./ui/home";
-import { renderGame } from "./ui/game";
-import { renderEnd } from "./ui/end";
-import { renderRules } from "./ui/rules";
-import { el, clear } from "./ui/dom";
-import "./style.css";
+import { decodeChallenge } from './share/codec';
+import { generateBoard, type Tile } from './grid/generator';
+import { loadDictionary, type Dictionary } from './dictionary';
+import { loadDefinitions, type DefinitionLookup } from './dictionary/definitions';
+import { renderHome } from './ui/home';
+import { renderGame } from './ui/game';
+import { renderEnd } from './ui/end';
+import { renderRules } from './ui/rules';
+import { el, clear } from './ui/dom';
+import './style.css';
 
 function randomSeed(): number {
   return Math.floor(Math.random() * 2 ** 31);
@@ -19,15 +19,15 @@ let definitionsPromise: Promise<DefinitionLookup> | null = null;
 function renderLoading(root: HTMLElement): void {
   clear(root);
   root.append(
-    el("div", { className: "screen screen--loading" }, [
-      el("div", { className: "spinner" }),
-      el("p", { textContent: "Chargement du dictionnaire…" }),
+    el('div', { className: 'screen screen--loading' }, [
+      el('div', { className: 'spinner' }),
+      el('p', { textContent: 'Chargement du dictionnaire…' }),
     ]),
   );
 }
 
 async function main() {
-  const root = document.querySelector<HTMLDivElement>("#app")!;
+  const root = document.querySelector<HTMLDivElement>('#app')!;
   renderLoading(root);
 
   let dict: Dictionary;
@@ -36,8 +36,8 @@ async function main() {
   } catch {
     clear(root);
     root.append(
-      el("div", { className: "screen" }, [
-        el("p", { textContent: "Impossible de charger le dictionnaire." }),
+      el('div', { className: 'screen' }, [
+        el('p', { textContent: 'Impossible de charger le dictionnaire.' }),
       ]),
     );
     return;
@@ -59,7 +59,7 @@ async function main() {
       board,
       dict,
       wordsToBeat,
-      definitions: definitionsPromise!,
+      definitions: definitionsPromise,
       onEnd: (engine, stats) => {
         const showEnd = () =>
           renderEnd(root, {
@@ -80,7 +80,7 @@ async function main() {
   };
 
   const params = new URLSearchParams(location.search);
-  const token = params.get("c");
+  const token = params.get('c');
   const challenge = token ? decodeChallenge(token) : null;
 
   if (challenge) {
@@ -90,4 +90,4 @@ async function main() {
   }
 }
 
-main();
+void main();

@@ -1,5 +1,5 @@
-import type { Tile } from "../grid/generator";
-import { areAdjacent, pathToWord, MIN_WORD_LENGTH } from "./rules";
+import type { Tile } from '../grid/generator';
+import { areAdjacent, pathToWord, MIN_WORD_LENGTH } from './rules';
 
 export interface WordDict {
   has(w: string): boolean;

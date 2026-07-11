@@ -1,6 +1,6 @@
-import { Countdown } from "./timer";
+import { Countdown } from './timer';
 
-test("ticks down and ends", () => {
+test('ticks down and ends', () => {
   vi.useFakeTimers();
   const ticks: number[] = [];
   let ended = false;

@@ -4,10 +4,10 @@
  */
 export function normalizeWord(raw: string): string {
   return raw
-    .replace(/œ/gi, "oe")
-    .replace(/æ/gi, "ae")
-    .normalize("NFKD")
+    .replace(/œ/gi, 'oe')
+    .replace(/æ/gi, 'ae')
+    .normalize('NFKD')
     .toLowerCase()
-    .replace(/[̀-ͯ]/g, "") // combining diacritics
-    .replace(/[^a-z]/g, "");
+    .replace(/[̀-ͯ]/g, '') // combining diacritics
+    .replace(/[^a-z]/g, '');
 }
