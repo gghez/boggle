@@ -19,7 +19,9 @@ lettered dice.
 
 ## Eligible words
 
-Only valid French dictionary words count. In particular:
+Only words from the **ODS8** (Officiel du jeu Scrabble, 8th edition) — the
+official reference dictionary for competitive French Scrabble — count. In
+particular:
 
 - **No proper nouns** — names of people (including surnames), places, or
   brands. `Dupont`, `Paris`, `Zidane` are not accepted.

@@ -1,16 +1,18 @@
 /**
  * Build the bundled French dictionary + definitions assets.
  *
- * Words: the `an-array-of-french-words` base list (MIT) unioned with the LEMMA
- * entries of the French Wiktionary extraction (kaikki.org) — proper nouns (pos
- * "name": surnames, given names, places, brands — forbidden in Boggle),
- * inflected forms (first sense tagged "form-of" or carrying a `form_of` field)
- * and multi-word locutions (raw `word` contains a space) are excluded, so the
- * game gains missing common words (fan, geek, web, ...) without ballooning to
- * the full ~1.8M-entry Wiktionary. Definitions: the first gloss seen per normalized
- * word, cleaned and truncated, kept ONLY for words that end up in the
- * dictionary. Both are normalized (accent-insensitive, a-z, length >= 3),
- * de-duplicated, sorted, gzipped.
+ * Words: the ODS8 (Officiel du jeu Scrabble, 8th edition) word list — the
+ * reference dictionary for competitive French Scrabble — so every word the
+ * game accepts is one a Scrabble player would recognize as valid, with no
+ * abbreviations, internet slang or other words a generic wordlist might carry.
+ * Wiktionary (kaikki.org) is used only to attach a definition to each ODS8
+ * word; it is streamed word-by-word and never adds new words to the
+ * dictionary itself. Proper nouns and other forms Wiktionary tags as such
+ * (pos "name") are skipped when picking a gloss, so a kept homograph (e.g.
+ * the coin "napoléon", also the proper noun "Napoléon") never inherits a
+ * proper-noun definition. Definitions are the first gloss seen per normalized
+ * word, cleaned and truncated. Both files are normalized (accent-insensitive,
+ * a-z, length >= 3), de-duplicated, sorted, gzipped.
  *
  * The `.bin` extension (not `.gz`) is deliberate: it stops static servers from
  * applying a transport-level `Content-Encoding: gzip`, so the app decompresses
@@ -27,22 +29,22 @@ import { Readable } from "node:stream";
 import { normalizeWord } from "../src/dictionary/normalize";
 import { cleanGloss, truncateGloss } from "./gloss";
 
-const WORDS_URL =
-  "https://raw.githubusercontent.com/words/an-array-of-french-words/master/index.json";
+const ODS8_URL =
+  "https://raw.githubusercontent.com/kamilmielnik/scrabble-dictionaries/master/french/ods8.txt";
 const WIKT_URL =
   "https://kaikki.org/frwiktionary/Fran%C3%A7ais/kaikki.org-dictionary-Fran%C3%A7ais.jsonl";
 
-async function loadBaseWords(): Promise<Set<string>> {
-  console.log(`Fetching base word list ...`);
-  const res = await fetch(WORDS_URL);
+async function loadOds8Words(): Promise<Set<string>> {
+  console.log(`Fetching ODS8 word list ...`);
+  const res = await fetch(ODS8_URL);
   if (!res.ok) throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
-  const raw: string[] = await res.json();
+  const raw = await res.text();
   const set = new Set<string>();
-  for (const w of raw) {
+  for (const w of raw.split("\n")) {
     const n = normalizeWord(w);
     if (n.length >= 3) set.add(n);
   }
-  console.log(`Base words: ${set.size}`);
+  console.log(`ODS8 words: ${set.size}`);
   return set;
 }
 
@@ -73,7 +75,7 @@ interface WiktEntry {
 }
 
 async function main() {
-  const words = await loadBaseWords();
+  const words = await loadOds8Words();
   const glosses = new Map<string, string>();
 
   let seen = 0;
@@ -90,16 +92,17 @@ async function main() {
     const word = normalizeWord(raw);
     if (word.length < 3) continue;
 
+    if (!words.has(word)) continue;
+
     const sense = entry.senses?.[0];
 
     // Proper nouns (surnames, given names, places, brands) are not valid Boggle
-    // words. kaikki marks them with a top-level pos of "name"; skip them for
-    // both the dictionary and gloss capture, so a kept homograph (e.g. the coin
-    // "napoléon", also the proper noun "Napoléon") never inherits a proper-noun
-    // definition.
+    // words. kaikki marks them with a top-level pos of "name"; skip them when
+    // picking a gloss, so a kept homograph (e.g. the coin "napoléon", also the
+    // proper noun "Napoléon") never inherits a proper-noun definition.
     const isProperNoun = entry.pos === "name";
 
-    // First gloss seen for this normalized word (any non-proper-noun entry,
+    // First gloss seen for this ODS8 word (any non-proper-noun entry,
     // inflected forms included — "Pluriel de chat" is a fine gloss for a
     // base-list plural).
     const gloss = sense?.glosses?.[0];
@@ -107,14 +110,6 @@ async function main() {
       const clean = truncateGloss(cleanGloss(gloss));
       if (clean) glosses.set(word, clean);
     }
-
-    // Only common-word lemmas extend the dictionary: skip proper nouns (pos
-    // "name"), inflected forms (tagged "form-of" / carrying form_of) and
-    // multi-word locutions (space in raw). This keeps the word count sane for
-    // gameplay (~642k, not ~1.8M).
-    const isInflected =
-      (sense?.tags?.includes("form-of") ?? false) || (sense?.form_of?.length ?? 0) > 0;
-    if (!isProperNoun && !isInflected && !raw.includes(" ")) words.add(word);
   }
 
   mkdirSync("public", { recursive: true });
@@ -122,8 +117,7 @@ async function main() {
   const dictText = [...words].sort().join("\n");
   writeFileSync("public/dictionary.bin", gzipSync(dictText));
 
-  // Ship a gloss only for words that are actually in the dictionary.
-  const defWords = [...glosses.keys()].filter((w) => words.has(w)).sort();
+  const defWords = [...glosses.keys()].sort();
   const defsText = defWords.map((w) => `${w}\t${glosses.get(w)}`).join("\n");
   writeFileSync("public/definitions.bin", gzipSync(defsText));
 
