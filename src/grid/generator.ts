@@ -1,5 +1,5 @@
-import { mulberry32 } from "./rng";
-import { FRENCH_DICE } from "./dice";
+import { mulberry32 } from './rng';
+import { FRENCH_DICE } from './dice';
 
 /** A board cell: a single uppercase letter or the "Qu" digraph. */
 export type Tile = string;

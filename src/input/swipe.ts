@@ -1,4 +1,4 @@
-import { areAdjacent } from "../game/rules";
+import { areAdjacent } from '../game/rules';
 
 /**
  * Compute the next path given the cell currently under the finger:
@@ -41,9 +41,9 @@ export class SwipeController {
     private onPath: (path: number[]) => void,
     private onSubmit: (path: number[]) => void,
   ) {
-    root.addEventListener("pointerdown", this.down);
-    root.addEventListener("pointermove", this.move);
-    window.addEventListener("pointerup", this.up);
+    root.addEventListener('pointerdown', this.down);
+    root.addEventListener('pointermove', this.move);
+    window.addEventListener('pointerup', this.up);
   }
 
   /**
@@ -92,8 +92,8 @@ export class SwipeController {
   };
 
   destroy(): void {
-    this.root.removeEventListener("pointerdown", this.down);
-    this.root.removeEventListener("pointermove", this.move);
-    window.removeEventListener("pointerup", this.up);
+    this.root.removeEventListener('pointerdown', this.down);
+    this.root.removeEventListener('pointermove', this.move);
+    window.removeEventListener('pointerup', this.up);
   }
 }

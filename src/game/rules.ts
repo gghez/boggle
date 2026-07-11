@@ -1,4 +1,4 @@
-import type { Tile } from "../grid/generator";
+import type { Tile } from '../grid/generator';
 
 export const GRID_SIZE = 4;
 export const MIN_WORD_LENGTH = 3;
@@ -26,7 +26,7 @@ export function isValidPath(path: number[]): boolean {
 export function pathToWord(board: Tile[], path: number[]): string {
   return path
     .map((i) => board[i])
-    .join("")
+    .join('')
     .toLowerCase();
 }
 

@@ -1,4 +1,4 @@
-import type { Tile } from "../grid/generator";
+import type { Tile } from '../grid/generator';
 
 /** A completed game, as logged to the local history. */
 export interface GameRecord {
@@ -14,12 +14,12 @@ export interface GameRecord {
   wordsToBeat: number | null;
 }
 
-const STORAGE_KEY = "boggle:history";
+const STORAGE_KEY = 'boggle:history';
 // Bound storage growth: drop the oldest entries past this count.
 const MAX_ENTRIES = 200;
 
 function randomId(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
@@ -27,8 +27,8 @@ function readAll(): GameRecord[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as GameRecord[]) : [];
   } catch {
     // Corrupt data or storage unavailable (private browsing, disabled, etc.):
     // history is a non-critical enhancement, so fail quiet with an empty list.
@@ -50,7 +50,7 @@ export function listGames(): GameRecord[] {
 }
 
 /** Log a completed game and return the stored record. */
-export function saveGame(record: Omit<GameRecord, "id" | "playedAt">): GameRecord {
+export function saveGame(record: Omit<GameRecord, 'id' | 'playedAt'>): GameRecord {
   const full: GameRecord = { ...record, id: randomId(), playedAt: new Date().toISOString() };
   const records = [full, ...readAll()].slice(0, MAX_ENTRIES);
   writeAll(records);

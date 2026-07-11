@@ -17,11 +17,11 @@ export function clear(node: HTMLElement): void {
 
 /** Show a transient toast message at the bottom of the screen. */
 export function toast(message: string): void {
-  const t = el("div", { className: "toast", textContent: message });
+  const t = el('div', { className: 'toast', textContent: message });
   document.body.append(t);
-  setTimeout(() => t.classList.add("toast--in"), 10);
+  setTimeout(() => t.classList.add('toast--in'), 10);
   setTimeout(() => {
-    t.classList.remove("toast--in");
+    t.classList.remove('toast--in');
     setTimeout(() => t.remove(), 300);
   }, 1800);
 }
