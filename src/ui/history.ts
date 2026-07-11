@@ -5,6 +5,7 @@ import { el, clear } from './dom';
 export interface HistoryOptions {
   onBack: () => void;
   onReplay: (board: Tile[], multipliers: MultiplierMap, scoreToBeat: number | null) => void;
+  onView: (game: GameRecord, multipliers: MultiplierMap) => void;
 }
 
 /** Bonus map for a record, tolerating older entries saved before bonuses existed. */
@@ -25,13 +26,11 @@ function formatDate(iso: string): string {
 }
 
 function gameRow(game: GameRecord, opts: HistoryOptions, onDeleted: () => void): HTMLElement {
-  const pct = game.humanMaxScore > 0 ? Math.round((game.score / game.humanMaxScore) * 100) : 0;
-
   const info = el('div', { className: 'history-row__info' }, [
     el('div', { className: 'history-row__date', textContent: formatDate(game.playedAt) }),
     el('div', {
       className: 'history-row__stats',
-      textContent: `${game.wordCount}/${game.humanMaxWords} mots · ${game.score}/${game.humanMaxScore} pts · ${pct}%`,
+      textContent: `${game.wordCount} mots · ${game.score} pts`,
     }),
     ...(game.scoreToBeat != null
       ? [
@@ -43,6 +42,12 @@ function gameRow(game: GameRecord, opts: HistoryOptions, onDeleted: () => void):
       : []),
   ]);
 
+  const viewBtn = el('button', {
+    className: 'btn history-row__btn',
+    textContent: '👁️',
+    title: "Revoir l'écran de fin",
+    onclick: () => opts.onView(game, recordMultipliers(game)),
+  });
   const replayBtn = el('button', {
     className: 'btn history-row__btn',
     textContent: '🔁',
@@ -61,7 +66,7 @@ function gameRow(game: GameRecord, opts: HistoryOptions, onDeleted: () => void):
 
   return el('div', { className: 'history-row' }, [
     info,
-    el('div', { className: 'history-row__actions' }, [replayBtn, deleteBtn]),
+    el('div', { className: 'history-row__actions' }, [viewBtn, replayBtn, deleteBtn]),
   ]);
 }
 
