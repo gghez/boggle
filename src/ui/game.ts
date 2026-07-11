@@ -31,6 +31,12 @@ export interface GameOptions {
   scoreToBeat: number | null;
   definitions: Promise<DefinitionLookup>;
   onEnd: (engine: GameEngine, stats: GameStats) => void;
+  /**
+   * Abandon the current game (the "← quit" button, after confirmation). The
+   * countdown keeps running until this fires, so opening the dialog can't be
+   * used to pause the clock and think up words before cancelling.
+   */
+  onQuit: () => void;
 }
 
 /**
@@ -40,7 +46,7 @@ export interface GameOptions {
  * so a backgrounded game can't keep ticking and fire its end handler.
  */
 export function renderGame(root: HTMLElement, opts: GameOptions): () => void {
-  const { board, multipliers, dict, scoreToBeat, definitions, onEnd } = opts;
+  const { board, multipliers, dict, scoreToBeat, definitions, onEnd, onQuit } = opts;
   clear(root);
   // Definitions load in the background during play; once ready, a found word's
   // gloss is flashed above the grid. Null until the asset resolves.
@@ -189,7 +195,53 @@ export function renderGame(root: HTMLElement, opts: GameOptions): () => void {
     swipe.destroy();
   };
 
-  const header = el('div', { className: 'game-header' }, [timerEl, scoreEl]);
+  // "← Quitter" button: abandon the game, but only after confirming. The
+  // confirmation dialog deliberately leaves the countdown running (see below).
+  const quitBtn = el('button', {
+    className: 'btn quit-btn',
+    textContent: '←',
+    title: 'Quitter la partie',
+    ariaLabel: 'Quitter la partie',
+    onclick: () => openQuitDialog(),
+  });
+
+  // Only ever one dialog at a time.
+  let quitDialog: HTMLElement | null = null;
+  function closeQuitDialog(): void {
+    if (!quitDialog) return;
+    quitDialog.remove();
+    quitDialog = null;
+  }
+  function openQuitDialog(): void {
+    if (quitDialog) return;
+    // The clock is NOT stopped here: pausing while the dialog is open would let a
+    // player freeze time, find words, then cancel — so the timer keeps ticking
+    // underneath and only leaving the game (confirm) tears it down.
+    quitDialog = el('div', { className: 'confirm' }, [
+      el('div', { className: 'confirm__box' }, [
+        el('p', { className: 'confirm__title', textContent: 'Quitter la partie ?' }),
+        el('p', {
+          className: 'confirm__text',
+          textContent: 'Le chrono continue de tourner. La partie en cours sera perdue.',
+        }),
+        el('div', { className: 'confirm__actions' }, [
+          el('button', {
+            className: 'btn',
+            textContent: 'Reprendre',
+            onclick: () => closeQuitDialog(),
+          }),
+          el('button', {
+            className: 'btn btn--danger',
+            textContent: 'Quitter',
+            onclick: () => onQuit(),
+          }),
+        ]),
+      ]),
+    ]);
+    screen.append(quitDialog);
+  }
+
+  const header = el('div', { className: 'game-header' }, [quitBtn, timerEl, scoreEl]);
   // Grid sits at the bottom (thumb reach); info fills the space above it.
   // .board-area bounds the grid to the available height so it never overflows
   // the viewport (which would introduce a page scroll).

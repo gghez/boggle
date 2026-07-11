@@ -112,6 +112,13 @@ async function main() {
           });
           router.replace(endView(engine, board, multipliers, scoreToBeat, stats));
         },
+        // Quitting mid-game (after the in-screen confirmation) abandons the run
+        // without saving it: lift the back-gesture veto and pop to the screen the
+        // game was launched from. The game's teardown then stops the countdown.
+        onQuit: () => {
+          router.setGuard(null);
+          router.back();
+        },
       });
       // A game runs to the buzzer: veto the back gesture so an edge-swipe (or a
       // stray word-tracing drag near the screen edge) can't abandon it. Lifted
