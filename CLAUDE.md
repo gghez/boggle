@@ -14,6 +14,9 @@ French Boggle game: find as many words as possible in 3 minutes.
   abbreviations or slang) and `public/definitions.bin` (TSV `word⇥gloss`,
   glosses sourced from French Wiktionary for ODS8 words, lazy-loaded on the
   end screen). Regenerate both with `npm run build:dict` (tsx script).
+- **Game history**: past games are logged to `localStorage`
+  (`src/history/store.ts`) and browsable in-app (`src/ui/history.ts`, from the
+  home screen); no backend, capped at 200 entries.
 - **Hosting**: Netlify static site, no backend.
 
 ## Rules

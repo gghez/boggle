@@ -6,6 +6,8 @@ import { renderHome } from "./ui/home";
 import { renderGame } from "./ui/game";
 import { renderEnd } from "./ui/end";
 import { renderRules } from "./ui/rules";
+import { renderHistory } from "./ui/history";
+import { saveGame } from "./history/store";
 import { el, clear } from "./ui/dom";
 import "./style.css";
 
@@ -46,11 +48,18 @@ async function main() {
   // Show the rules on a dedicated screen; the back button returns to `onBack`.
   const showRules = (onBack: () => void) => renderRules(root, { onBack });
 
+  const showHistory = () =>
+    renderHistory(root, {
+      onBack: showHome,
+      onReplay: (board, wordsToBeat) => startGame(board, wordsToBeat),
+    });
+
   const showHome = () =>
     renderHome(
       root,
       () => startGame(generateBoard(randomSeed()), null),
       () => showRules(showHome),
+      showHistory,
     );
 
   const startGame = (board: Tile[], wordsToBeat: number | null) => {
@@ -61,6 +70,14 @@ async function main() {
       wordsToBeat,
       definitions: definitionsPromise!,
       onEnd: (engine, stats) => {
+        saveGame({
+          board,
+          score: engine.score,
+          wordCount: engine.wordCount,
+          humanMaxScore: stats.humanMaxScore,
+          humanMaxWords: stats.humanMaxWords,
+          wordsToBeat,
+        });
         const showEnd = () =>
           renderEnd(root, {
             engine,
