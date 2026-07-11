@@ -28,6 +28,7 @@ test('renders found and missed words as chips', () => {
     definitions: Promise.resolve(new DefinitionLookup(new Map())),
     onNewGrid: () => {},
     onReplaySame: () => {},
+    onHome: () => {},
     onHelp: () => {},
   });
   expect(root.querySelectorAll('.chip').length).toBe(2); // arc (found) + car (missed)
@@ -46,6 +47,7 @@ test('tapping a word traces it and shows its definition', async () => {
     definitions: Promise.resolve(new DefinitionLookup(new Map([['arc', 'Portion de courbe.']]))),
     onNewGrid: () => {},
     onReplaySame: () => {},
+    onHome: () => {},
     onHelp: () => {},
   });
   const chip = root.querySelector('.chip') as HTMLElement;
@@ -55,6 +57,26 @@ test('tapping a word traces it and shows its definition', async () => {
   expect(cells[1].classList.contains('cell--active')).toBe(true);
   await flush(); // let the definitions promise resolve
   expect(root.querySelector('.def__text')!.textContent).toBe('Portion de courbe.');
+});
+
+test('the home button invokes onHome', () => {
+  const root = document.createElement('div');
+  let homed = 0;
+  renderEnd(root, {
+    engine: makeEngineWithArc(),
+    board,
+    wordsToBeat: null,
+    humanMaxWords: 1,
+    humanMaxScore: 1,
+    paths: new Map([['arc', [0, 1, 2]]]),
+    definitions: Promise.resolve(new DefinitionLookup(new Map())),
+    onNewGrid: () => {},
+    onReplaySame: () => {},
+    onHome: () => homed++,
+    onHelp: () => {},
+  });
+  (root.querySelector('.home-btn') as HTMLElement).click();
+  expect(homed).toBe(1);
 });
 
 test('missed word without a gloss shows a fallback', async () => {
@@ -72,6 +94,7 @@ test('missed word without a gloss shows a fallback', async () => {
     definitions: Promise.resolve(new DefinitionLookup(new Map())),
     onNewGrid: () => {},
     onReplaySame: () => {},
+    onHome: () => {},
     onHelp: () => {},
   });
   // "CAR" is the missed word; its chip exists in the DOM even while its tab is hidden.
