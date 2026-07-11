@@ -62,6 +62,41 @@ test('tapping a word traces it and shows its definition', async () => {
   expect(root.querySelector('.def__text')!.textContent).toBe('Portion de courbe.');
 });
 
+test('tapping a word shows its score in a badge (found and missed)', () => {
+  const root = document.createElement('div');
+  renderEnd(root, {
+    engine: makeEngineWithArc(),
+    board,
+    multipliers: noBonus,
+    scoreToBeat: null,
+    humanMaxWords: 2,
+    humanMaxScore: 2,
+    paths: new Map([
+      ['arc', [0, 1, 2]],
+      ['car', [2, 1, 0]],
+    ]),
+    definitions: Promise.resolve(new DefinitionLookup(new Map())),
+    onNewGrid: () => {},
+    onReplaySame: () => {},
+    onHome: () => {},
+    onHelp: () => {},
+  });
+  const badge = () => root.querySelector('.def__score') as HTMLElement;
+  // A/R/C on a bonus-free board = 1 + 1 + 3 = 5 pts (no length bonus under 5).
+  const arcChip = [...root.querySelectorAll('.chip')].find(
+    (c) => c.textContent === 'ARC',
+  ) as HTMLElement;
+  arcChip.click();
+  expect(badge().hidden).toBe(false);
+  expect(badge().textContent).toBe('5 pts');
+  // The missed word gets a score too.
+  const carChip = [...root.querySelectorAll('.chip')].find(
+    (c) => c.textContent === 'CAR',
+  ) as HTMLElement;
+  carChip.click();
+  expect(badge().textContent).toBe('5 pts');
+});
+
 test('the home button invokes onHome', () => {
   const root = document.createElement('div');
   let homed = 0;

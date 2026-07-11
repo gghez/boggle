@@ -710,9 +710,23 @@ body {
   display: none;
 }
 .def__word {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 800;
   letter-spacing: 1px;
   margin-bottom: 2px;
+}
+/* Score badge: a golden pill next to the word, distinct from the gloss text. */
+.def__score {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #fff;
+  background: var(--primary);
+  border-radius: 999px;
+  padding: 2px 10px;
 }
 .def__text {
   color: var(--muted);
