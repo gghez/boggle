@@ -1,6 +1,7 @@
 import type { Tile, MultiplierMap } from '../grid/generator';
 import type { GameEngine } from '../game/engine';
 import type { DefinitionLookup } from '../dictionary/definitions';
+import { scorePath } from '../game/rules';
 import { shareChallenge } from '../share/share';
 import { createBoardView } from './board-view';
 import { el, clear, toast } from './dom';
@@ -88,7 +89,10 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
   view.element.classList.add('grid-wrap--end');
 
   // Definition banner (fixed height; empty state until a word is tapped).
-  const defWord = el('div', { className: 'def__word' });
+  // The header row holds the word plus a badge with the score that word earns.
+  const defWordText = el('span', { className: 'def__word-text' });
+  const defScore = el('span', { className: 'def__score' });
+  const defWord = el('div', { className: 'def__word' }, [defWordText, defScore]);
   const defText = el('div', {
     className: 'def__text',
     textContent: 'Touche un mot pour voir sa définition et son tracé.',
@@ -107,7 +111,16 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
     else view.clearPath();
 
     defBanner.classList.remove('def--empty');
-    defWord.textContent = word.toUpperCase();
+    defWordText.textContent = word.toUpperCase();
+    // Same path that's traced on the grid, so the badge matches the actual
+    // score the word earns (tile bonuses + length bonus). Hidden if we somehow
+    // lack a path for the word.
+    if (path) {
+      defScore.textContent = `${scorePath(board, multipliers, path)} pts`;
+      defScore.hidden = false;
+    } else {
+      defScore.hidden = true;
+    }
     defText.textContent = '…';
     void definitions.then((lookup) => {
       if (activeChip !== chip) return; // a later tap won the race
