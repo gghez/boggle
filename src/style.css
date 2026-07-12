@@ -441,9 +441,9 @@ body {
 /* Discreet letter value (French Scrabble tile value) in the bottom-right corner. */
 .cell__value {
   position: absolute;
-  bottom: 3px;
-  right: 5px;
-  font-size: clamp(0.5rem, 2.2vw, 0.7rem);
+  bottom: 5px;
+  right: 7px;
+  font-size: clamp(0.6rem, 2.6vw, 0.85rem);
   font-weight: 700;
   line-height: 1;
   opacity: 0.45;
