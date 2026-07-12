@@ -67,8 +67,8 @@ async function main() {
   const historyView: View = () =>
     renderHistory(root, {
       onBack: () => router.back(),
-      onReplay: (board, multipliers, scoreToBeat) =>
-        router.push(gameView(board, multipliers, scoreToBeat)),
+      onReplay: (board, multipliers, scoreToBeat, seed) =>
+        router.push(gameView(board, multipliers, scoreToBeat, seed)),
       // Re-view a past game's end screen: the found words are stored on the
       // record, and every findable word (with its path) is re-solved from the
       // board so the "Ratés" tab and word tracing work exactly as they did live.
@@ -84,7 +84,9 @@ async function main() {
           humanMaxScore: game.humanMaxScore,
           paths: solveBoardWithPaths(game.board, dict),
         };
-        router.push(endView(result, game.board, multipliers, game.scoreToBeat, stats));
+        router.push(
+          endView(result, game.board, multipliers, game.scoreToBeat, stats, game.seed ?? null),
+        );
       },
     });
 
@@ -100,7 +102,7 @@ async function main() {
   // both the letters and the bonus layout are reproducible from that seed.
   const freshGame = (): View => {
     const seed = randomSeed();
-    return gameView(generateBoard(seed), generateMultipliers(seed), null);
+    return gameView(generateBoard(seed), generateMultipliers(seed), null, seed);
   };
 
   // A finished game hands back to an end screen that *replaces* the game in
@@ -108,7 +110,12 @@ async function main() {
   // screen the game was launched from (home or history). New/replay games from
   // the end screen likewise replace it, keeping the stack shallow.
   const gameView =
-    (board: Tile[], multipliers: MultiplierMap, scoreToBeat: number | null): View =>
+    (
+      board: Tile[],
+      multipliers: MultiplierMap,
+      scoreToBeat: number | null,
+      seed: number | null,
+    ): View =>
     () => {
       if (!definitionsPromise) definitionsPromise = loadDefinitions();
       const teardown = renderGame(root, {
@@ -127,8 +134,9 @@ async function main() {
             humanMaxScore: stats.humanMaxScore,
             humanMaxWords: stats.humanMaxWords,
             scoreToBeat,
+            seed: seed ?? undefined,
           });
-          router.replace(endView(engine, board, multipliers, scoreToBeat, stats));
+          router.replace(endView(engine, board, multipliers, scoreToBeat, stats, seed));
         },
         // Quitting mid-game (after the in-screen confirmation) abandons the run
         // without saving it: lift the back-gesture veto and pop to the screen the
@@ -155,6 +163,7 @@ async function main() {
       multipliers: MultiplierMap,
       scoreToBeat: number | null,
       stats: GameStats,
+      seed: number | null,
     ): View =>
     () =>
       renderEnd(root, {
@@ -162,11 +171,12 @@ async function main() {
         board,
         multipliers,
         scoreToBeat,
+        seed,
         humanMaxScore: stats.humanMaxScore,
         paths: stats.paths,
         definitions: definitionsPromise!,
         onNewGrid: () => router.replace(freshGame()),
-        onReplaySame: () => router.replace(gameView(board, multipliers, scoreToBeat)),
+        onReplaySame: () => router.replace(gameView(board, multipliers, scoreToBeat, seed)),
         onHome: () => router.toRoot(),
         onHelp: () => router.push(rulesView),
       });
@@ -180,7 +190,14 @@ async function main() {
   // into a game.
   router.reset(homeView);
   if (challenge) {
-    router.push(gameView(challenge.board, challenge.multipliers, challenge.scoreToBeat));
+    router.push(
+      gameView(
+        challenge.board,
+        challenge.multipliers,
+        challenge.scoreToBeat,
+        challenge.seed ?? null,
+      ),
+    );
   }
 }
 
