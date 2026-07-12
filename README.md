@@ -1,5 +1,7 @@
 # Boggle PWA (FR)
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/20c87961-e0e2-47a9-879e-79bb78a26d0b/deploy-status)](https://app.netlify.com/projects/boggle-gghez/deploys)
+
 A French Boggle game as an installable, offline-capable PWA. Generate a 4×4
 grid, find as many words as possible in 3 minutes by swiping across adjacent
 letters, then challenge a friend through the native share sheet — they play the
