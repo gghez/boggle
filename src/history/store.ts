@@ -19,6 +19,12 @@ export interface GameRecord {
   foundWords?: string[];
   /** Score to beat if this was a challenge, null for a plain game. */
   scoreToBeat: number | null;
+  /**
+   * The board's generating seed, so this grid can be re-shared as a compact
+   * link. Optional: records saved before seeds were tracked omit it (re-sharing
+   * those falls back to the full-board link form).
+   */
+  seed?: number;
 }
 
 const STORAGE_KEY = 'boggle:history';

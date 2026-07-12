@@ -21,6 +21,8 @@ export interface EndOptions {
   board: Tile[];
   multipliers: MultiplierMap;
   scoreToBeat: number | null;
+  /** The board's generating seed, enabling a compact share link (null if unknown). */
+  seed?: number | null;
   // The realistic human ceiling (see humanReach) the player's praise line is
   // scaled against — not the theoretical total of every word the solver reaches.
   humanMaxScore: number;
@@ -55,6 +57,7 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
     board,
     multipliers,
     scoreToBeat,
+    seed,
     humanMaxScore,
     paths,
     definitions,
@@ -172,7 +175,12 @@ export function renderEnd(root: HTMLElement, opts: EndOptions): void {
     textContent: '📤 Défier',
     onclick: async () => {
       try {
-        const res = await shareChallenge({ board, multipliers, scoreToBeat: engine.score });
+        const res = await shareChallenge({
+          seed: seed ?? undefined,
+          board,
+          multipliers,
+          scoreToBeat: engine.score,
+        });
         if (res === 'copied' || res === 'manual') toast('Lien copié !');
       } catch {
         toast('Le partage a échoué');

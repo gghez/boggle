@@ -4,7 +4,12 @@ import { el, clear } from './dom';
 
 export interface HistoryOptions {
   onBack: () => void;
-  onReplay: (board: Tile[], multipliers: MultiplierMap, scoreToBeat: number | null) => void;
+  onReplay: (
+    board: Tile[],
+    multipliers: MultiplierMap,
+    scoreToBeat: number | null,
+    seed: number | null,
+  ) => void;
   onView: (game: GameRecord, multipliers: MultiplierMap) => void;
 }
 
@@ -52,7 +57,8 @@ function gameRow(game: GameRecord, opts: HistoryOptions, onDeleted: () => void):
     className: 'btn history-row__btn',
     textContent: '🔁',
     title: 'Rejouer cette grille',
-    onclick: () => opts.onReplay(game.board, recordMultipliers(game), game.scoreToBeat),
+    onclick: () =>
+      opts.onReplay(game.board, recordMultipliers(game), game.scoreToBeat, game.seed ?? null),
   });
   const deleteBtn = el('button', {
     className: 'btn history-row__btn',
