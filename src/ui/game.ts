@@ -8,6 +8,8 @@ import { pathToWord, scorePath, humanReach } from '../game/rules';
 import { solveBoardWithPaths } from '../game/solver';
 import { el, clear } from './dom';
 import { createBoardView } from './board-view';
+import { createSoundPlayer } from '../audio/sounds';
+import { isSoundEnabled, setSoundEnabled } from '../audio/settings';
 
 export const TIMER_SECONDS = 180;
 
@@ -94,9 +96,16 @@ export function renderGame(root: HTMLElement, opts: GameOptions): () => void {
   const gridEl = view.grid;
   const gridWrap = view.element;
 
+  const sound = createSoundPlayer();
+  // Track the previous path length so a tick fires only when a letter is added
+  // (not on backtrack or when the path clears), rising in pitch with the length.
+  let prevPathLength = 0;
+
   function drawPath(path: number[]): void {
     view.drawPath(path);
     currentEl.textContent = path.length ? pathToWord(board, path).toUpperCase() : '';
+    if (path.length > prevPathLength) sound.tick(path.length);
+    prevPathLength = path.length;
   }
 
   // Floating "WORD +N" popup above the grid; +N colored by a point tier (scores
@@ -165,6 +174,12 @@ export function renderGame(root: HTMLElement, opts: GameOptions): () => void {
     (path) => {
       const result = engine.submitPath(path);
       flash(result);
+      // Result cue on release: win for a new word, a neutral blip for a
+      // duplicate, a lose buzz otherwise. A 1-cell tap (an accidental tap
+      // rather than a real trace) stays silent.
+      if (result === 'valid-new') sound.win();
+      else if (result === 'valid-duplicate') sound.duplicate();
+      else if (path.length >= 2) sound.lose();
       if (result === 'valid-new') {
         const word = pathToWord(board, path);
         showGain(word, scorePath(board, multipliers, path));
@@ -205,6 +220,26 @@ export function renderGame(root: HTMLElement, opts: GameOptions): () => void {
     onclick: () => openQuitDialog(),
   });
 
+  // Sound on/off toggle: a round icon button that mirrors its persisted state.
+  // The icon (🔊 / 🔇) swaps with the state so the current mode is always visible.
+  const soundBtn = el('button', { className: 'btn sound-btn' });
+  function refreshSoundBtn(): void {
+    const on = isSoundEnabled();
+    soundBtn.textContent = on ? '🔊' : '🔇';
+    const label = on ? 'Couper le son' : 'Activer le son';
+    soundBtn.title = label;
+    soundBtn.ariaLabel = label;
+    soundBtn.setAttribute('aria-pressed', String(!on));
+  }
+  soundBtn.onclick = () => {
+    const next = !isSoundEnabled();
+    setSoundEnabled(next);
+    refreshSoundBtn();
+    // Play a confirmation blip when turning sound back on, so the toggle is audible.
+    if (next) sound.tick(1);
+  };
+  refreshSoundBtn();
+
   // Only ever one dialog at a time.
   let quitDialog: HTMLElement | null = null;
   function closeQuitDialog(): void {
@@ -241,7 +276,8 @@ export function renderGame(root: HTMLElement, opts: GameOptions): () => void {
     screen.append(quitDialog);
   }
 
-  const header = el('div', { className: 'game-header' }, [quitBtn, timerEl, scoreEl]);
+  const headerLeft = el('div', { className: 'game-header__left' }, [quitBtn, soundBtn]);
+  const header = el('div', { className: 'game-header' }, [headerLeft, timerEl, scoreEl]);
   // Grid sits at the bottom (thumb reach); info fills the space above it.
   // .board-area bounds the grid to the available height so it never overflows
   // the viewport (which would introduce a page scroll).

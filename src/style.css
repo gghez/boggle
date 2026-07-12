@@ -264,9 +264,18 @@ body {
   font-size: 1.1rem;
 }
 
-/* Quit button: small round icon on the left of the header, a mirror of the
-   help/home round buttons but laid out inline. */
-.quit-btn {
+/* Left cluster of the header: the quit + sound-toggle round icon buttons. */
+.game-header__left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Quit and sound buttons: small round icons on the left of the header, a mirror
+   of the help/home round buttons but laid out inline. */
+.quit-btn,
+.sound-btn {
   width: 38px;
   height: 38px;
   padding: 0;
@@ -280,6 +289,12 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+/* The emoji glyph carries the meaning; drop the bold weight it doesn't need. */
+.sound-btn {
+  font-size: 1.15rem;
+  font-weight: 400;
 }
 
 .timer {

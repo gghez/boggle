@@ -34,8 +34,38 @@ function setup(overrides: Partial<GameOptions> = {}): {
   };
 }
 
-beforeEach(() => vi.useFakeTimers());
+beforeEach(() => {
+  vi.useFakeTimers();
+  localStorage.clear();
+});
 afterEach(() => vi.useRealTimers());
+
+test('the sound toggle starts enabled and flips state + icon + storage on click', () => {
+  const { root, teardown } = setup();
+  const btn = root.querySelector('.sound-btn') as HTMLElement;
+  expect(btn).toBeTruthy();
+  // Default on.
+  expect(btn.textContent).toBe('🔊');
+  expect(btn.getAttribute('aria-pressed')).toBe('false');
+
+  btn.click();
+  expect(btn.textContent).toBe('🔇');
+  expect(btn.getAttribute('aria-pressed')).toBe('true');
+  expect(localStorage.getItem('boggle:sound')).toBe('off');
+
+  btn.click();
+  expect(btn.textContent).toBe('🔊');
+  expect(localStorage.getItem('boggle:sound')).toBe('on');
+  teardown();
+});
+
+test('the sound toggle reflects the persisted preference on load', () => {
+  localStorage.setItem('boggle:sound', 'off');
+  const { root, teardown } = setup();
+  const btn = root.querySelector('.sound-btn') as HTMLElement;
+  expect(btn.textContent).toBe('🔇');
+  teardown();
+});
 
 test('the quit button opens a confirmation dialog', () => {
   const { root, teardown } = setup();
