@@ -409,6 +409,7 @@ body {
 }
 
 .cell {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -435,6 +436,20 @@ body {
 
 .cell__letter {
   pointer-events: none;
+}
+
+/* Discreet letter value (French Scrabble tile value) in the bottom-right corner. */
+.cell__value {
+  position: absolute;
+  bottom: 3px;
+  right: 5px;
+  font-size: clamp(0.5rem, 2.2vw, 0.7rem);
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0.45;
+  text-shadow: none;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .cell--active {
